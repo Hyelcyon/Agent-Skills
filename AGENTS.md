@@ -149,6 +149,10 @@ When executing non-trivial engineering tasks within a covered domain, proactivel
   - VS Code Toolchain: `skills/engineering/tooling/vscode` (settings.json, launch.json, tasks.json, extensions.json)
   - Reverse Engineering: `skills/engineering/tooling/ida` (IDA Pro MCP server, headless batch analysis)
   - Diagrams & Documentation: `skills/engineering/tooling/ascii-diagram`, `code-documentation`
+- **Platform & Systems**:
+  - Linux: `skills/engineering/platform/linux` (cgroups v2, systemd sandboxing, defensive Bash, USE method)
+  - Windows: `skills/engineering/platform/windows` (PowerShell 7.4+, SCM services, NTFS ACLs, WSL2)
+  - macOS: `skills/engineering/platform/macos` (Darwin userland, launchd, arm64 codesign, sandbox-exec)
 - **Research & Learning**:
   - Fast Triage & Multi-Hop Search: `skills/research/light-research` (Multi-hop search, breaking-change falsification, API contract & error verification)
   - In-Depth Spikes: `skills/research/deep-research` (Multi-vector spikes, gap-detection loops, Pugh matrix, ADRs)

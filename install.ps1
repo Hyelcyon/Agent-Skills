@@ -146,7 +146,7 @@ foreach ($target in $targetDirs) {
             New-Item -Path $target.Path -ItemType Directory -Force | Out-Null
         }
 
-        Write-Host "  Synchronizing structured 9-category skill tree into $($target.Path)..." -ForegroundColor Cyan
+        Write-Host "  Synchronizing structured 10-category skill tree into $($target.Path)..." -ForegroundColor Cyan
         robocopy $SkillsRoot $target.Path /MIR /NFL /NDL /NJH /NJS /nc /ns /np | Out-Null
         Write-Host "  [OK] Successfully synchronized $($selectedSkills.Count) skills into Google Antigravity without flat duplicates.`n" -ForegroundColor Green
         continue

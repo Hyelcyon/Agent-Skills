@@ -62,6 +62,9 @@ When the task scope matches any of the following categories, hydrate and follow 
 | | Package management with pnpm, npm, vite | [`skills/engineering/tooling/pnpm`](../skills/engineering/tooling/pnpm/SKILL.md), [`npm`](../skills/engineering/tooling/npm/SKILL.md), [`vite`](../skills/engineering/tooling/vite/SKILL.md) |
 | | IDA Pro headless MCP analysis | [`skills/engineering/tooling/ida`](../skills/engineering/tooling/ida/SKILL.md) |
 | | ASCII / Unicode diagrams, CJK visual width, box-drawing | [`skills/engineering/tooling/ascii-diagram`](../skills/engineering/tooling/ascii-diagram/SKILL.md) |
+| **Platform & Systems** | Linux administration, systemd, cgroups v2, defensive Bash | [`skills/engineering/platform/linux`](../skills/engineering/platform/linux/SKILL.md) |
+| | Windows administration, PowerShell 7.4+, SCM, ACLs, WSL2 | [`skills/engineering/platform/windows`](../skills/engineering/platform/windows/SKILL.md) |
+| | macOS administration, launchd, arm64 codesign, Darwin userland | [`skills/engineering/platform/macos`](../skills/engineering/platform/macos/SKILL.md) |
 | **Research & Learning** | Fast technical triage, multi-hop search & falsification | [`skills/research/light-research`](../skills/research/light-research/SKILL.md) |
 | | Multi-vector spikes, gap-detection loops, Pugh matrix, ADR | [`skills/research/deep-research`](../skills/research/deep-research/SKILL.md) |
 | | Workspace memory, user feedback /learn, post-mortems | [`skills/research/knowledge-learning`](../skills/research/knowledge-learning/SKILL.md) |

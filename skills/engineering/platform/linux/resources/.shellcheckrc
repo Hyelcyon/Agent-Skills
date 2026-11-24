@@ -1,0 +1,14 @@
+# ShellCheck Strict Configuration for Enterprise Bash
+# Place at project root or ~/.shellcheckrc
+
+# Force bash dialect
+shell=bash
+
+# Enable all optional analysis checks
+enable=all
+
+# Require strict quoting on array expansions and variables
+check-unassigned-uppercase=true
+
+# Exclude only intentional non-POSIX extensions when bash is explicit
+disable=SC1090,SC1091

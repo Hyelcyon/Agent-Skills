@@ -126,7 +126,7 @@ for target in "${targets[@]}"; do
       echo "  [OK] Uninstallation complete for Antigravity."
       continue
     fi
-    echo "  Synchronizing structured 9-category skill tree into $target..."
+    echo "  Synchronizing structured 10-category skill tree into $target..."
     if command -v rsync >/dev/null 2>&1; then
       rsync -a --delete "$SKILLS_DIR/" "$target/"
     else

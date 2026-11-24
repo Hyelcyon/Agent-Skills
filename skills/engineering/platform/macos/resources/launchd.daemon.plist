@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.enterprise.service</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/enterprise/bin/daemon</string>
+        <string>--config</string>
+        <string>/Library/Application Support/Enterprise/config.json</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>NetworkState</key>
+        <true/>
+    </dict>
+
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <key>StandardOutPath</key>
+    <string>/var/log/enterprise-service.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/var/log/enterprise-service.err.log</string>
+
+    <key>WorkingDirectory</key>
+    <string>/opt/enterprise</string>
+
+    <key>ProcessType</key>
+    <string>Standard</string>
+
+    <key>HardResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>10240</integer>
+    </dict>
+</dict>
+</plist>

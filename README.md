@@ -76,7 +76,7 @@ This repository includes native manifest declarations for direct discovery acros
 
 ---
 
-## 4. Skills Taxonomy (47 Skills)
+## 4. Skills Taxonomy (50 Skills)
 
 ### Languages & Systems
 | Skill | Target Runtime / Standard | Primary Invariants |
@@ -92,6 +92,13 @@ This repository includes native manifest declarations for direct discovery acros
 | **`asm`** | x86-64 & ARM64 | AVX-512 / NEON vector kernels, lock-free atomics, port saturation |
 | **`luau`** | Roblox Luau | Strict type checking, metatable OOP, engine connection cleanup |
 | **`html-css`** | Semantic HTML5 & CSS3 | CSS Container Queries, `:has()` relational selector, WCAG 2.2 AA accessibility |
+
+### Platform & Operating Systems
+| Skill | Target OS / Standard | Primary Invariants |
+| :--- | :--- | :--- |
+| **`linux`** | Linux / POSIX | Defensive Bash (`set -euo pipefail`), hardened `systemd` sandboxing, `cgroups` v2, USE method |
+| **`windows`** | Windows 11 / Server | PowerShell 7.4+ (`[CmdletBinding()]`), Windows Services (`sc.exe`), NTFS ACLs, WSL2 bridge |
+| **`macos`** | macOS Sonoma / Sequoia | Darwin BSD userland, `launchd` daemons (`bootstrap`/`bootout`), arm64 codesign, Brewfile |
 
 ### Web Frontend
 | Skill | Framework Standard | Primary Invariants |
