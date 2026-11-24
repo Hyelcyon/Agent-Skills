@@ -1,0 +1,12 @@
+{
+  "name": "agent-skills",
+  "version": "1.0.0",
+  "description": "Engineering, Architecture, and Language skills for AI coding agents",
+  "author": {
+    "name": "Hyelcyon",
+    "url": "https://github.com/Hyelcyon"
+  },
+  "homepage": "https://github.com/Hyelcyon/Agent-Skills",
+  "skills": "./skills",
+  "skills_manifest": "./skills.json"
+}
