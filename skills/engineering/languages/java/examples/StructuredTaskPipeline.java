@@ -1,7 +1,8 @@
 package com.enterprise.examples;
 
-import java.util.concurrent.StructuredTaskScope;
-import java.util.function.Supplier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class StructuredTaskPipeline {
     public record UserProfile(String id, String username) {}
@@ -9,14 +10,11 @@ public class StructuredTaskPipeline {
     public record CombinedAccountState(UserProfile profile, UserCreditScore score) {}
 
     public CombinedAccountState aggregateUserData(String userId) throws Exception {
-        try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
-            Supplier<UserProfile> profileSubtask = scope.fork(() -> queryUserProfile(userId));
-            Supplier<UserCreditScore> creditSubtask = scope.fork(() -> queryCreditScore(userId));
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            Future<UserProfile> profileTask = executor.submit(() -> queryUserProfile(userId));
+            Future<UserCreditScore> creditTask = executor.submit(() -> queryCreditScore(userId));
 
-            scope.join();
-            scope.throwIfFailed();
-
-            return new CombinedAccountState(profileSubtask.get(), creditSubtask.get());
+            return new CombinedAccountState(profileTask.resultNow(), creditTask.resultNow());
         }
     }
 
