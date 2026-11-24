@@ -133,16 +133,22 @@ When executing non-trivial engineering tasks within a covered domain, proactivel
 - **Backend & Database**:
   - Node.js: `skills/engineering/web/backend/nodejs` (Node 22+, native TS stripping, built-in test runner)
   - REST & RPC APIs: `skills/engineering/web/backend/api` (Cursor pagination, RFC 9457 errors, Idempotency-Key)
+  - gRPC Services: `skills/engineering/web/backend/grpc` (Proto3 tag immobility, streaming backpressure, interceptors, deadlines)
   - System Architecture: `skills/engineering/web/backend/architecture` (Hexagonal Ports & Adapters, Outbox)
   - Authentication: `skills/engineering/web/backend/auth` (OAuth 2.1 PKCE, BFF cookie shielding, Argon2id)
+  - Redis Datastore: `skills/engineering/database/redis` (Atomic distributed locks, XFetch stampede defense, LRU/LFU eviction)
   - Schema Architecture: `skills/engineering/database/schema-design` (UUIDv7, 3NF, JSONB boundaries)
   - Zero-Downtime Migration: `skills/engineering/database/migration` (3-phase Expand-Contract, concurrent DDL)
   - Query Optimization: `skills/engineering/database/query-optimization` (EXPLAIN ANALYZE, covering indexes)
+- **Cloud & Infrastructure**:
+  - Kubernetes: `skills/engineering/cloud/kubernetes` (Restricted PSS, probes, QoS requests/limits, PDB, zero-downtime rollouts)
+  - Terraform & OpenTofu: `skills/engineering/cloud/terraform` (Remote state locking, moved blocks, variable validations, IaC)
+  - Observability & Telemetry: `skills/engineering/cloud/observability` (OpenTelemetry tracing, Prometheus RED/USE, multi-burn-rate SLOs)
+  - CI/CD Pipelines: `skills/engineering/cloud/ci-cd` (GitHub Actions, OIDC, cosign attestation)
+  - Containers: `skills/engineering/cloud/docker` (Multi-stage builds, non-root users, distroless)
 - **Security & Tooling**:
   - OWASP Top 10 / CWE Top 25: `skills/engineering/security/owasp-hardening`
   - Secrets & Credentials: `skills/engineering/security/secret-management` (Vault JIT, Gitleaks)
-  - CI/CD Pipelines: `skills/engineering/cloud/ci-cd` (GitHub Actions, OIDC, cosign attestation)
-  - Containers: `skills/engineering/cloud/docker` (Multi-stage builds, non-root users, distroless)
   - Git Hygiene: `skills/engineering/tooling/git` (Conventional commits, worktrees, interactive rebase)
   - GitHub Governance: `skills/engineering/tooling/github` (SemVer guardrails, CODEOWNERS, PR templates)
   - Package Management: `skills/engineering/tooling/pnpm`, `npm`, `vite`

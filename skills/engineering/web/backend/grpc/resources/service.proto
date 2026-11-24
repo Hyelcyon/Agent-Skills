@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/company/apis/gen/go/order/v1;orderv1";
+option java_package = "com.company.apis.order.v1";
+option java_multiple_files = true;
+
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  ORDER_STATUS_CREATED = 1;
+  ORDER_STATUS_PROCESSING = 2;
+  ORDER_STATUS_COMPLETED = 3;
+  ORDER_STATUS_CANCELLED = 4;
+}
+
+message OrderItem {
+  string product_id = 1;
+  int32 quantity = 2;
+  int64 price_cents = 3;
+}
+
+message CreateOrderRequest {
+  reserved 3, 4;
+  reserved "discount_coupon", "tax_override";
+
+  string customer_id = 1;
+  repeated OrderItem items = 2;
+  string currency = 5;
+}
+
+message OrderResponse {
+  string order_id = 1;
+  string customer_id = 2;
+  OrderStatus status = 3;
+  int64 total_amount_cents = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message StreamOrdersRequest {
+  string customer_id = 1;
+}
+
+service OrderService {
+  rpc CreateOrder(CreateOrderRequest) returns (OrderResponse);
+  rpc StreamOrders(StreamOrdersRequest) returns (stream OrderResponse);
+}

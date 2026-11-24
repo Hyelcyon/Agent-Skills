@@ -1,0 +1,16 @@
+version: v1
+name: buf.build/company/order-apis
+build:
+  roots:
+    - .
+lint:
+  use:
+    - DEFAULT
+  except:
+    - PACKAGE_DIRECTORY_MATCH
+  enum_zero_value_suffix: _UNSPECIFIED
+  service_suffix: Service
+breaking:
+  use:
+    - FILE
+    - PACKAGE

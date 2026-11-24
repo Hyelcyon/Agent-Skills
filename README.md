@@ -76,7 +76,7 @@ This repository includes native manifest declarations for direct discovery acros
 
 ---
 
-## 4. Skills Taxonomy (50 Skills)
+## 4. Skills Taxonomy (55 Skills)
 
 ### Languages & Systems
 | Skill | Target Runtime / Standard | Primary Invariants |
@@ -118,15 +118,20 @@ This repository includes native manifest declarations for direct discovery acros
 | :--- | :--- | :--- |
 | **`nodejs`** | Node.js 22+ | Native TypeScript type stripping, `node:sqlite`, `node:test` runner |
 | **`api`** | REST / RPC | Keyset cursor pagination, RFC 9457 Problem Details, `Idempotency-Key` |
+| **`grpc`** | gRPC / Protocol Buffers | Proto3 tag immobility, reserved blocks, streaming backpressure, mandatory client deadlines |
 | **`architecture`** | Backend Systems | Hexagonal Ports and Adapters, Modular Monoliths, Transactional Outbox |
 | **`auth`** | Identity & Sessions | OAuth 2.1 with PKCE, BFF cookie management, Argon2id hashing |
+| **`redis`** | In-Memory Datastore | Atomic distributed locks (`SET NX PX` + Lua release), XFetch stampede defense, bounded memory eviction |
 | **`schema-design`** | Relational Modeling | UUIDv7 primary keys, 3NF normalization, JSONB containment boundaries |
 | **`migration`** | Zero-Downtime DDL | 3-phase Expand-Contract pattern, concurrent index creation |
 | **`query-optimization`** | SQL Tuning | EXPLAIN ANALYZE interpretation, covering indexes, eliminating table scans |
 
-### Security & DevOps
+### Cloud, Infrastructure & Security
 | Skill | Domain | Primary Invariants |
 | :--- | :--- | :--- |
+| **`kubernetes`** | Container Orchestration | Restricted PSS, explicit QoS requests/limits, startup/liveness/readiness probes, PDB, zero-downtime rolling updates |
+| **`terraform`** | Infrastructure as Code | Remote state locking (S3/DynamoDB), non-destructive `moved` blocks, custom variable validations, lifecycle safety rules |
+| **`observability`** | Telemetry & Monitoring | OpenTelemetry distributed tracing, Prometheus RED/USE metrics, W3C context correlation in logs, multi-window SLO burn rates |
 | **`owasp-hardening`** | Application Security | Neutralizing OWASP Top 10 and CWE Top 25 vulnerabilities |
 | **`secret-management`** | Credential Lifecycle | HashiCorp Vault JIT tokens, zero-leak CI/CD, pre-commit Gitleaks |
 | **`ci-cd`** | GitHub Actions | OIDC authentication, cosign supply chain attestation, cache mounts |

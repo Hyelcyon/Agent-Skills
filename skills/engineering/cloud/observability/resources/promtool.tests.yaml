@@ -1,0 +1,22 @@
+rule_files:
+  - prometheus-alerts.rules.yaml
+
+evaluation_interval: 1m
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{instance="api-1:8080", job="api"}'
+        values: '1 1 0 0 0'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: ServiceInstanceDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              tier: infrastructure
+              instance: "api-1:8080"
+              job: "api"
+            exp_annotations:
+              summary: "Service instance api-1:8080 is unreachable"
+              description: "Prometheus failed to scrape target for longer than 1 minute."

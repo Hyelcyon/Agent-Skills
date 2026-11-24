@@ -47,12 +47,17 @@ When the task scope matches any of the following categories, hydrate and follow 
 | | React Bits animated UI, 3D backgrounds | [`skills/engineering/web/frontend/react-bits`](../skills/engineering/web/frontend/react-bits/SKILL.md) |
 | **Backend & DB** | Node.js 22+, native type stripping | [`skills/engineering/web/backend/nodejs`](../skills/engineering/web/backend/nodejs/SKILL.md) |
 | | Cursor pagination, RFC 9457, Idempotency | [`skills/engineering/web/backend/api`](../skills/engineering/web/backend/api/SKILL.md) |
+| | High-performance RPC, Protocol Buffers proto3 | [`skills/engineering/web/backend/grpc`](../skills/engineering/web/backend/grpc/SKILL.md) |
 | | Hexagonal Ports & Adapters, Outbox | [`skills/engineering/web/backend/architecture`](../skills/engineering/web/backend/architecture/SKILL.md) |
 | | OAuth 2.1 PKCE, BFF cookie shielding | [`skills/engineering/web/backend/auth`](../skills/engineering/web/backend/auth/SKILL.md) |
+| | In-memory caching, distributed locks, Lua atomicity | [`skills/engineering/database/redis`](../skills/engineering/database/redis/SKILL.md) |
 | | Schema modeling, UUIDv7, normal forms | [`skills/engineering/database/schema-design`](../skills/engineering/database/schema-design/SKILL.md) |
 | | Expand-Contract zero-downtime DDL | [`skills/engineering/database/migration`](../skills/engineering/database/migration/SKILL.md) |
 | | EXPLAIN ANALYZE, Covering indexes | [`skills/engineering/database/query-optimization`](../skills/engineering/database/query-optimization/SKILL.md) |
-| **Security & Ops**| OWASP Top 10 / CWE Top 25 mitigations | [`skills/engineering/security/owasp-hardening`](../skills/engineering/security/owasp-hardening/SKILL.md) |
+| **Cloud & Ops** | Kubernetes orchestration, Restricted PSS, Probes, PDB | [`skills/engineering/cloud/kubernetes`](../skills/engineering/cloud/kubernetes/SKILL.md) |
+| | Terraform / OpenTofu, remote state locking, moved blocks | [`skills/engineering/cloud/terraform`](../skills/engineering/cloud/terraform/SKILL.md) |
+| | OpenTelemetry tracing, Prometheus RED/USE metrics, SLOs | [`skills/engineering/cloud/observability`](../skills/engineering/cloud/observability/SKILL.md) |
+| | OWASP Top 10 / CWE Top 25 mitigations | [`skills/engineering/security/owasp-hardening`](../skills/engineering/security/owasp-hardening/SKILL.md) |
 | | Vault dynamic secrets, Gitleaks scanning | [`skills/engineering/security/secret-management`](../skills/engineering/security/secret-management/SKILL.md) |
 | | GitHub Actions CI/CD, OIDC, cosign | [`skills/engineering/cloud/ci-cd`](../skills/engineering/cloud/ci-cd/SKILL.md) |
 | | Multi-stage Docker, distroless, non-root | [`skills/engineering/cloud/docker`](../skills/engineering/cloud/docker/SKILL.md) |

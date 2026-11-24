@@ -1,0 +1,45 @@
+groups:
+  - name: service_slo_alerts
+    rules:
+      - alert: ApiHighErrorRateBurnRate1h
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[1h]))
+            /
+            sum(rate(http_requests_total[1h]))
+          ) > (14.4 * (1 - 0.999))
+          and
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > (14.4 * (1 - 0.999))
+        for: 2m
+        labels:
+          severity: critical
+          tier: platform
+        annotations:
+          summary: "API Error Budget 14.4x Burn Rate on {{ $labels.service }}"
+          description: "High rate of 5xx errors consuming error budget rapidly."
+
+      - alert: ApiHighLatencyP99
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)) > 0.500
+        for: 5m
+        labels:
+          severity: warning
+          tier: service
+        annotations:
+          summary: "p99 Latency exceeds 500ms on {{ $labels.service }}"
+          description: "99th percentile request latency is above acceptable SLO threshold."
+
+      - alert: ServiceInstanceDown
+        expr: |
+          up == 0
+        for: 1m
+        labels:
+          severity: critical
+          tier: infrastructure
+        annotations:
+          summary: "Service instance {{ $labels.instance }} is unreachable"
+          description: "Prometheus failed to scrape target for longer than 1 minute."
