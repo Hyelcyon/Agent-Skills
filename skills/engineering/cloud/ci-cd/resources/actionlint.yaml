@@ -1,0 +1,33 @@
+self-hosted-runner:
+  labels:
+    - ubuntu-latest
+    - ubuntu-22.04
+    - ubuntu-24.04
+    - windows-latest
+    - macos-latest
+    - arc-runner-set
+
+paths:
+  ignore:
+    - .github/workflows/template-*.yml
+    - .github/workflows/archive/**
+
+config-variables:
+  - NODE_VERSION
+  - DEPLOY_REGION
+  - CLOUD_PROVIDER
+
+rules:
+  runner-label:
+    enable: true
+  action:
+    enable: true
+  syntax-check:
+    enable: true
+
+shellcheck:
+  enable: true
+  options: ["-e", "SC2086", "-e", "SC2129"]
+
+pyflakes:
+  enable: true

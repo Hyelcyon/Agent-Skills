@@ -1,0 +1,25 @@
+{
+  "prerender": [
+    {
+      "source": "list",
+      "urls": [
+        "/dashboard",
+        "/pricing"
+      ],
+      "eagerness": "moderate"
+    }
+  ],
+  "prefetch": [
+    {
+      "source": "document",
+      "where": {
+        "and": [
+          { "href_matches": "/*" },
+          { "not": { "href_matches": "/logout" } },
+          { "not": { "href_matches": "/api/*" } }
+        ]
+      },
+      "eagerness": "conservative"
+    }
+  ]
+}

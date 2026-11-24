@@ -1,0 +1,9 @@
+{
+  "preMigrationGates": {
+    "maxLockTimeoutMs": 5000,
+    "maxStatementTimeoutMs": 30000,
+    "requireReversibleDownScript": true,
+    "requireNonBlockingIndex": true,
+    "requireBatchBackfillForRowsOver": 100000
+  }
+}

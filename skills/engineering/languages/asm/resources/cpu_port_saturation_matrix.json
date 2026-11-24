@@ -1,0 +1,32 @@
+{
+  "intel_golden_cove": {
+    "decodeWidth": 6,
+    "dsbWidth": 8,
+    "robSize": 512,
+    "ports": {
+      "port0": ["INT_ALU", "VEC_FMA", "VEC_ALU", "BRANCH"],
+      "port1": ["INT_ALU", "VEC_FMA", "VEC_ALU", "SLOW_INT"],
+      "port5": ["INT_ALU", "VEC_SHUFFLE", "FAST_BYTE_WORD"],
+      "port6": ["INT_ALU", "BRANCH", "SHIFT"],
+      "port2_3": ["LOAD_64B"],
+      "port7_8": ["STORE_AGU"],
+      "port4_9": ["STORE_DATA_64B"]
+    }
+  },
+  "amd_zen4": {
+    "decodeWidth": 4,
+    "opCacheWidth": 8,
+    "robSize": 320,
+    "integerAlus": 4,
+    "vectorPipes": 4,
+    "loadStoreAgus": 3
+  },
+  "apple_firestorm": {
+    "decodeWidth": 8,
+    "robSize": 630,
+    "integerAlus": 6,
+    "vectorFpPipes": 4,
+    "loadUnits": 2,
+    "storeUnits": 2
+  }
+}

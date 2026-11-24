@@ -1,0 +1,24 @@
+{
+  "name": "enterprise-node-service",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "start": "node --experimental-strip-types src/index.ts",
+    "dev": "node --watch --experimental-strip-types src/index.ts",
+    "test": "node --test --experimental-strip-types \"tests/**/*.test.ts\"",
+    "test:coverage": "node --test --experimental-test-coverage --experimental-strip-types \"tests/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

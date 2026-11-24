@@ -1,0 +1,16 @@
+Step 1: Inspect working tree cleanliness
+Command: git status --porcelain
+
+Step 2: Fetch latest upstream reference without moving HEAD
+Command: git fetch origin main
+
+Step 3: Initiate interactive rebase
+Command: git rebase -i origin/main
+
+Step 4: Resolve conflicts if any occur
+Command: git status
+Command: git add <resolved-files>
+Command: git rebase --continue
+
+Step 5: Verify branch log
+Command: git log --oneline -n 5 origin/main..HEAD

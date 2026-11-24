@@ -1,0 +1,6 @@
+feat(auth): add refresh token rotation
+
+Implement automatic token rotation on every refresh request to prevent replay attacks.
+Invalidate all existing session tokens if an expired or previously rotated token is reused.
+
+Closes #412

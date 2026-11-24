@@ -1,0 +1,11 @@
+{
+  "queryLatencyThresholds": {
+    "p95TargetMs": 20,
+    "p99TargetMs": 50,
+    "maxAllowedExecutionMs": 200
+  },
+  "indexPolicy": {
+    "forbidSeqScanOnTablesOverRows": 50000,
+    "requireCoveringIndexesForHotPaths": true
+  }
+}

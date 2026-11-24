@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "ida-mcp": {
+      "command": "ida-mcp",
+      "args": [
+        "stdio"
+      ],
+      "env": {
+        "IDA_MCP_IDLE_TIMEOUT": "3600"
+      }
+    }
+  }
+}

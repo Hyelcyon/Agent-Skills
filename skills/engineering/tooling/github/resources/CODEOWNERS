@@ -1,0 +1,12 @@
+* @enterprise/core-platform
+/.github/ @enterprise/devops-leads
+/.github/workflows/ @enterprise/security-team @enterprise/devops-leads
+/src/auth/ @enterprise/security-team
+/src/api/ @enterprise/backend-architects
+/src/database/migrations/ @enterprise/dba-team @enterprise/backend-architects
+/apps/web/ @enterprise/frontend-leads
+/packages/ui/ @enterprise/design-system-team
+/docs/ @enterprise/technical-writers
+CODEOWNERS @enterprise/core-platform
+package.json @enterprise/security-team @enterprise/core-platform
+pnpm-lock.yaml @enterprise/security-team @enterprise/core-platform

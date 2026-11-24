@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DiagramLintConfig",
+  "type": "object",
+  "properties": {
+    "tabPolicy": {
+      "type": "string",
+      "enum": ["prohibit", "allow"],
+      "default": "prohibit"
+    },
+    "ambiguousWidth": {
+      "type": "integer",
+      "enum": [1, 2],
+      "default": 1
+    },
+    "maxLineWidth": {
+      "type": "integer",
+      "default": 120
+    },
+    "enforceSymmetricBoxes": {
+      "type": "boolean",
+      "default": true
+    },
+    "allowedCharacterFamilies": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["pure_ascii", "unicode_light", "unicode_rounded", "unicode_heavy", "unicode_double"]
+      },
+      "default": ["pure_ascii", "unicode_light", "unicode_rounded"]
+    }
+  },
+  "required": ["tabPolicy", "ambiguousWidth", "enforceSymmetricBoxes"]
+}

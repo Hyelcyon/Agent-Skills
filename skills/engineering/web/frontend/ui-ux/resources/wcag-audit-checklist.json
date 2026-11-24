@@ -1,0 +1,21 @@
+{
+  "wcag22AA": {
+    "contrastRatio": {
+      "normalText": ">= 4.5:1",
+      "largeText": ">= 3:1",
+      "uiComponents": ">= 3:1"
+    },
+    "focusManagement": {
+      "visibleFocusIndicator": true,
+      "keyboardTrappableDialogs": true,
+      "escapeDismiss": true
+    },
+    "touchTargets": {
+      "minimumDimensionsPx": 24,
+      "recommendedDimensionsPx": 44
+    },
+    "redundantEntry": {
+      "preventDuplicateUserInput": true
+    }
+  }
+}

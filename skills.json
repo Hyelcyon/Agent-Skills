@@ -1,0 +1,34 @@
+{
+  "entries": [
+    {
+      "path": "skills/engineering/cloud"
+    },
+    {
+      "path": "skills/engineering/database"
+    },
+    {
+      "path": "skills/engineering/languages"
+    },
+    {
+      "path": "skills/engineering/languages/asm"
+    },
+    {
+      "path": "skills/engineering/security"
+    },
+    {
+      "path": "skills/engineering/tooling"
+    },
+    {
+      "path": "skills/engineering/web/backend"
+    },
+    {
+      "path": "skills/engineering/web/frontend"
+    },
+    {
+      "path": "skills/misc"
+    },
+    {
+      "path": "skills/research"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "version": "1.0.0",
+  "name": "High-Entropy Search Query Patterns",
+  "description": "Structured search patterns for multi-hop technical research and verification",
+  "patterns": {
+    "discovery": {
+      "purpose": "Locate official documentation root and major version reference",
+      "template": "site:{docsDomain} \"{exactSymbol}\" {versionAnchor}",
+      "examples": [
+        "site:nextjs.org/docs \"useActionState\" 15",
+        "site:fastapi.tiangolo.com \"Annotated\" \"Depends\" 0.115",
+        "site:docs.rs/tokio \"JoinSet\" 1.38"
+      ]
+    },
+    "signatureDeepDive": {
+      "purpose": "Extract exact parameters, return types, and interface contracts from repository source",
+      "template": "site:github.com/{owner}/{repo} \"export function {symbol}\" OR \"interface {symbol}Props\"",
+      "examples": [
+        "site:github.com/vercel/next.js \"export function useActionState\"",
+        "site:github.com/pydantic/pydantic \"def model_dump\"",
+        "site:github.com/trpc/trpc \"createTRPCContext\""
+      ]
+    },
+    "falsificationBreakingChanges": {
+      "purpose": "Detect breaking changes, renames, and signature alterations in target version",
+      "template": "\"{exactSymbol}\" \"{technology}\" \"{version}\" \"breaking change\" OR \"removed\" OR \"renamed\"",
+      "examples": [
+        "\"middleware\" \"nextjs\" \"15\" \"breaking change\" OR \"removed\"",
+        "\"dict()\" \"pydantic\" \"v2\" \"deprecated\" OR \"removed\"",
+        "\"useFormState\" \"react\" \"19\" \"deprecated\" OR \"replaced\""
+      ]
+    },
+    "falsificationDeprecations": {
+      "purpose": "Check if an API is marked for deprecation in upcoming or current releases",
+      "template": "site:{docsDomain} \"{exactSymbol}\" \"deprecated\" OR \"legacy\"",
+      "examples": [
+        "site:react.dev \"useFormState\" \"deprecated\"",
+        "site:nextjs.org/docs \"getServerSideProps\" \"deprecated\"",
+        "site:docs.python.org/3 \"cgi\" \"deprecated\""
+      ]
+    },
+    "errorDiagnosis": {
+      "purpose": "Diagnose compiler, linker, or runtime error codes against upstream issue trackers",
+      "template": "\"{exactErrorMessagePrefix}\" site:github.com/{owner}/{repo}/issues",
+      "examples": [
+        "\"TypeError: fetch failed\" \"UND_ERR_CONNECT_TIMEOUT\" site:github.com/nodejs/undici/issues",
+        "\"Invariant: Attempted to call () from the server\" site:github.com/vercel/next.js/issues",
+        "\"error[E0308]: mismatched types\" site:github.com/rust-lang/rust/issues"
+      ]
+    },
+    "runtimeEnvironmentBoundaries": {
+      "purpose": "Verify execution compatibility across Node.js, Edge, Serverless, and Browser runtimes",
+      "template": "\"{exactSymbol}\" (\"{runtime}\" OR \"serverless\" OR \"edge\") \"unsupported\" OR \"compatible\"",
+      "examples": [
+        "\"crypto.subtle\" \"edge runtime\" \"compatible\"",
+        "\"fs/promises\" \"cloudflare workers\" \"unsupported\"",
+        "\"better-sqlite3\" \"vercel serverless\" \"binary\""
+      ]
+    }
+  }
+}

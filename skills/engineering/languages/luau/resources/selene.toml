@@ -1,0 +1,19 @@
+std = "roblox"
+
+[rules]
+shadowing = "error"
+unused_variable = "error"
+empty_if = "error"
+global_usage = "error"
+multiple_statements = "error"
+parenthesize_conditions = "error"
+roblox_incorrect_color3_new_bounds = "error"
+unscoped_variables = "error"
+deprecated = "error"
+bad_string_escape = "error"
+mismatched_arg_count = "error"
+duplicate_keys = "error"
+
+[config]
+empty_if = { comments_count = false }
+unused_variable = { ignore_pattern = "^_" }

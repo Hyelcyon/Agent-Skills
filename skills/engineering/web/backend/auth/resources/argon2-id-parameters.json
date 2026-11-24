@@ -1,0 +1,21 @@
+{
+  "algorithm": "argon2id",
+  "memoryCostKiB": 65536,
+  "timeCostIterations": 3,
+  "parallelismThreads": 4,
+  "saltLengthBytes": 16,
+  "hashLengthBytes": 32,
+  "maxPasswordLengthBytes": 128,
+  "minPasswordLengthCharacters": 12,
+  "pepperEnabled": true,
+  "rateLimit": {
+    "maxFailedAttempts": 5,
+    "lockoutDurationSeconds": 900
+  },
+  "sessionCookie": {
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "strict",
+    "maxAgeSeconds": 604800
+  }
+}

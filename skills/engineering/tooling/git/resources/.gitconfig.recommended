@@ -1,0 +1,15 @@
+[core]
+    editor = code --wait
+    autocrlf = false
+    whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+[pull]
+    rebase = true
+[push]
+    default = current
+    autoSetupRemote = true
+[init]
+    defaultBranch = main
+[diff]
+    colorMoved = default
+[merge]
+    conflictstyle = zdiff3

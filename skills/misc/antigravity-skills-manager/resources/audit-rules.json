@@ -1,0 +1,18 @@
+{
+  "generalSkills": {
+    "minReferences": 3,
+    "minExamples": 3,
+    "minResources": 3
+  },
+  "majorFrameworks": {
+    "frameworks": ["react", "vue", "angular", "svelte", "nodejs", "nextjs"],
+    "minReferences": 7,
+    "minExamples": 3,
+    "minResources": 3
+  },
+  "qualityGates": {
+    "zeroInlineComments": true,
+    "requireFrontmatter": true,
+    "require5PhaseProtocol": true
+  }
+}

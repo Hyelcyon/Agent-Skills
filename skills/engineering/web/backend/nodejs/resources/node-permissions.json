@@ -1,0 +1,17 @@
+{
+  "permissionConfig": {
+    "enabled": true,
+    "allowFsRead": [
+      "/app/dist",
+      "/app/config",
+      "/app/package.json"
+    ],
+    "allowFsWrite": [
+      "/app/logs",
+      "/app/tmp"
+    ],
+    "allowChildProcess": false,
+    "allowWorker": true
+  },
+  "cliInvocation": "node --permission --allow-fs-read=/app/dist,/app/config --allow-fs-write=/app/logs dist/index.js"
+}

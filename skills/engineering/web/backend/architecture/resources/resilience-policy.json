@@ -1,0 +1,14 @@
+{
+  "circuitBreaker": {
+    "failureThresholdPercentage": 50,
+    "recoveryTimeoutMs": 10000,
+    "minimumRequestsBeforeEvaluation": 20
+  },
+  "retryPolicy": {
+    "maxAttempts": 3,
+    "backoffFactor": 2,
+    "initialDelayMs": 200,
+    "jitter": true
+  },
+  "timeoutBudgetMs": 3000
+}

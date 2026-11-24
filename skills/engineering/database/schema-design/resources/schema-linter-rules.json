@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "requirePrimaryKey": true,
+    "requireTimestamps": ["created_at", "updated_at"],
+    "forbidPluralTableNames": false,
+    "requireForeignKeyIndexes": true,
+    "namingConventions": {
+      "tables": "^[a-z_]+$",
+      "columns": "^[a-z_]+$",
+      "foreignKeys": "^fk_[a-z_]+$"
+    }
+  }
+}

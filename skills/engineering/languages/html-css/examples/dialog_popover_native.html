@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Native Dialog and Popover</title>
+  <style>
+    dialog::backdrop {
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    [popover] {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  </style>
+</head>
+<body>
+  <button type="button" onclick="document.getElementById('native-modal').showModal()">Open Dialog</button>
+  <button type="button" popovertarget="info-popover">Toggle Popover</button>
+
+  <dialog id="native-modal">
+    <form method="dialog">
+      <h2>Native Accessible Modal</h2>
+      <p>Uses top-layer rendering with automatic background inertia.</p>
+      <button value="close">Close Dialog</button>
+    </form>
+  </dialog>
+
+  <div id="info-popover" popover="auto">
+    <p>Native top-layer popover with automatic light-dismiss.</p>
+  </div>
+</body>
+</html>

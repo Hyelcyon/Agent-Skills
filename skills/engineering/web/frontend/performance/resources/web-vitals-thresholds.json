@@ -1,0 +1,23 @@
+{
+  "coreWebVitals": {
+    "LCP": {
+      "good": 2500,
+      "needsImprovement": 4000,
+      "unit": "ms"
+    },
+    "INP": {
+      "good": 200,
+      "needsImprovement": 500,
+      "unit": "ms"
+    },
+    "CLS": {
+      "good": 0.1,
+      "needsImprovement": 0.25,
+      "unit": "score"
+    }
+  },
+  "diagnostics": {
+    "longTaskThresholdMs": 50,
+    "idleDeadlineMs": 16
+  }
+}

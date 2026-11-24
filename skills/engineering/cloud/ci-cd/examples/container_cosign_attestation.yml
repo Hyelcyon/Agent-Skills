@@ -1,0 +1,19 @@
+name: Sign Container Image
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: sigstore/cosign-installer@v3.5.0
+      - run: |
+          cosign sign --yes ghcr.io/${{ github.repository }}:${{ github.ref_name }}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Container Query Grid</title>
+  <style>
+    .widget-container {
+      container-type: inline-size;
+      container-name: cardWidget;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .widget-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    @container cardWidget (min-width: 450px) {
+      .widget-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-container">
+    <div class="widget-card">
+      <h3>Dynamic Container Card</h3>
+      <p>Adapts layout based on container width rather than viewport.</p>
+      <button type="button">Action</button>
+    </div>
+  </div>
+</body>
+</html>

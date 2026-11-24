@@ -1,0 +1,21 @@
+{
+  "sql_allowed_order_directions": [
+    "ASC",
+    "DESC"
+  ],
+  "sql_allowed_user_sort_columns": [
+    "id",
+    "created_at",
+    "updated_at",
+    "email",
+    "username",
+    "status"
+  ],
+  "safe_filename_regex": "^[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9]+)?$",
+  "safe_url_schemes": [
+    "https:"
+  ],
+  "max_request_payload_bytes": 1048576,
+  "max_regex_input_length": 512,
+  "regex_timeout_ms": 200
+}

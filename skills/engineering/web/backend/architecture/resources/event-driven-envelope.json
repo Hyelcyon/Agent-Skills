@@ -1,0 +1,13 @@
+{
+  "specversion": "1.0",
+  "type": "com.enterprise.order.created",
+  "source": "https://orders.enterprise.com",
+  "id": "A234-1234-1234",
+  "time": "2026-11-02T23:30:00Z",
+  "datacontenttype": "application/json",
+  "data": {
+    "orderId": "ord_9901",
+    "amount": 25000,
+    "currency": "USD"
+  }
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessible Container Card</title>
+  <link rel="stylesheet" href="../resources/tokens.layers.css">
+  <style>
+    @layer components {
+      .card-wrapper {
+        container-type: inline-size;
+      }
+      .card {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+        border: 1px solid var(--color-neutral-900);
+        border-radius: var(--radius-md);
+        padding: var(--space-md);
+      }
+      .card:has(:focus-visible) {
+        outline: 2px solid var(--color-primary-500);
+      }
+      @container (min-width: 400px) {
+        .card {
+          grid-template-columns: 100px 1fr;
+        }
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="card-wrapper">
+      <article class="card">
+        <header>
+          <h2>Feature Item</h2>
+        </header>
+        <section>
+          <p>Accessible responsive layout without JavaScript.</p>
+          <button type="button">Action</button>
+        </section>
+      </article>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,12 @@
+@font-face {
+  font-family: 'Fallback-Arial';
+  src: local('Arial');
+  ascent-override: 95%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+  size-adjust: 102%;
+}
+
+:root {
+  --font-primary: 'Inter', 'Fallback-Arial', sans-serif;
+}

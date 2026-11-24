@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "runes": true,
+    "immutable": true
+  },
+  "kit": {
+    "adapter": "@sveltejs/adapter-auto",
+    "prerender": {
+      "concurrency": 4
+    }
+  }
+}

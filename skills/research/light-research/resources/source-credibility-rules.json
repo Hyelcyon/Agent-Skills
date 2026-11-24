@@ -1,0 +1,77 @@
+{
+  "version": "2.0.0",
+  "name": "Source Authority & Credibility Hierarchy",
+  "tiers": [
+    {
+      "tier": 1,
+      "label": "Authoritative Primary Truth",
+      "authorityScore": 1.0,
+      "requiresCrossVerification": false,
+      "categories": [
+        "Official language and runtime specifications (ECMAScript, ISO C++, W3C, RFCs)",
+        "Primary documentation portals (docs.rs, docs.python.org, nextjs.org/docs, react.dev, developer.mozilla.org)",
+        "Official framework API schema registries and OpenAPI specifications"
+      ]
+    },
+    {
+      "tier": 2,
+      "label": "Canonical Evolution & Maintainer Releases",
+      "authorityScore": 0.9,
+      "requiresCrossVerification": false,
+      "categories": [
+        "Official GitHub releases, CHANGELOG.md, and upgrade guides authored by maintainers",
+        "Direct commits to main/master in maintainer-owned repositories",
+        "Official RFC PRs and core maintainer architectural proposals"
+      ]
+    },
+    {
+      "tier": 3,
+      "label": "Maintainer Issue Trackers & Empirical Bug Reports",
+      "authorityScore": 0.8,
+      "requiresCrossVerification": true,
+      "categories": [
+        "Closed GitHub issues with merged fix commits or verified maintainer workarounds",
+        "Open GitHub issues with reproducible minimal reproduction repositories",
+        "Core team member technical write-ups and release announcements"
+      ]
+    },
+    {
+      "tier": 4,
+      "label": "Independent Engineering Deep-Dives",
+      "authorityScore": 0.5,
+      "requiresCrossVerification": true,
+      "categories": [
+        "Engineering blogs of established tech companies (Cloudflare, Netflix, Uber, Vercel engineering)",
+        "Reproducible independent benchmarks with published hardware, versions, and test scripts",
+        "Vetted community packages and established maintainers"
+      ]
+    },
+    {
+      "tier": 5,
+      "label": "Unverified Community Content (Distrust by Default)",
+      "authorityScore": 0.2,
+      "requiresCrossVerification": true,
+      "categories": [
+        "StackOverflow questions and answers (frequently obsolete or version-mismatched)",
+        "Medium, Dev.to, and personal developer blogs (often copy-pasted without testing)",
+        "Reddit discussions, Hacker News threads, and Discord forum summaries"
+      ]
+    }
+  ],
+  "discreditedSources": {
+    "zeroTrustPenalty": 0.0,
+    "description": "Never adopt technical solutions, API signatures, or architecture recommendations from these sources without Tier 1 verification",
+    "sources": [
+      "AI-generated search overview snippets (Google SGE / Bing Copilot summary excerpts)",
+      "SEO content aggregator farms (GeeksForGeeks, Baeldung, Tutorialspoint, Javatpoint)",
+      "Outdated documentation for previous major versions without a version banner",
+      "Marketing landing pages claiming performance or zero-cost without reproducible benchmarks"
+    ]
+  },
+  "operationalRules": [
+    "Always prefer a Tier 1 or Tier 2 source over any combination of Tier 5 sources",
+    "A single snippet from Tier 5 is insufficient evidence to adopt a code pattern",
+    "When Tier 1 documentation and a community blog contradict, Tier 1 always prevails",
+    "If an API appears in a Tier 5 source but cannot be located in Tier 1 or 2, treat it as a probable hallucination or deprecated legacy API"
+  ]
+}

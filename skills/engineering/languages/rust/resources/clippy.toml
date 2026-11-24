@@ -1,0 +1,10 @@
+msrv = "1.80.0"
+avoid-breaking-exported-api = true
+cognitive-complexity-threshold = 20
+too-many-arguments-threshold = 7
+type-complexity-threshold = 250
+single-char-binding-names-threshold = 4
+doc-valid-idents = ["GitHub", "JSON", "OAuth", "PostgreSQL", "UUID"]
+disallowed-types = [
+    { path = "std::sync::mpsc::Sender", reason = "Prefer crossbeam or flume channels for unbounded performance" }
+]

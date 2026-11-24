@@ -1,0 +1,31 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: light dark;
+  hanging-punctuation: first last;
+  interpolate-size: allow-keywords;
+}
+
+body {
+  min-height: 100dvh;
+  line-height: 1.5;
+  font-family: system-ui, -apple-system, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+:root {
+  --color-canvas: light-dark(#ffffff, #0d1117);
+  --color-fg: light-dark(#1f2328, #f0f6fc);
+  --color-accent: light-dark(#0969da, #2f81f7);
+  --font-fluid-h1: clamp(1.75rem, 1.25rem + 2.5vw, 2.75rem);
+}

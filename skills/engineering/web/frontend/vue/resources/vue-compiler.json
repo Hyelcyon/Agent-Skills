@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "isCustomElement": false,
+    "whitespace": "condense",
+    "delimiters": ["{{", "}}"]
+  },
+  "reactivityTransform": false,
+  "propsDestructure": true
+}

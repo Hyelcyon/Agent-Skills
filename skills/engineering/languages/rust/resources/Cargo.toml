@@ -1,0 +1,16 @@
+[package]
+name = "production-crate"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+thiserror = "2.0"
+eyre = "0.6"
+tokio = { version = "1.40", features = ["full"] }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

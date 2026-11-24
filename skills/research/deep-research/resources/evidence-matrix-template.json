@@ -1,0 +1,9 @@
+{
+  "claimVerification": {
+    "claim": "Specific performance or architectural assertion",
+    "verified": true,
+    "evidenceSource": "Official documentation, benchmark run, or specification link",
+    "reproducibilityCommand": "Command used to empirically reproduce result",
+    "confidenceScore": 0.95
+  }
+}

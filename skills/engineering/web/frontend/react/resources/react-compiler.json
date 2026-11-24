@@ -1,0 +1,11 @@
+{
+  "compilationMode": "infer",
+  "sources": [
+    "src/**/*.{ts,tsx}"
+  ],
+  "panicThreshold": "none",
+  "environment": {
+    "enableResetOptimizations": true,
+    "enablePreserveExistingMemoizationGuarantees": false
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "scoringRubric": {
+    "securityAndVulnerabilities": {
+      "weight": 0.30,
+      "maxKnownCves": 0,
+      "supplyChainAttestationRequired": true,
+      "unmaintainedAdvisoriesPenalty": 1.0
+    },
+    "maintenanceAndFreshness": {
+      "weight": 0.25,
+      "maxDaysSinceLastRelease": 120,
+      "openIssuesToPrRatioThreshold": 3.0,
+      "multipleMaintainersRequired": true
+    },
+    "typeSafetyAndCompatibility": {
+      "weight": 0.25,
+      "nativeTypeScriptTypes": true,
+      "esmAndCjsDualExport": true,
+      "treeShakingSupported": true
+    },
+    "ecosystemAdoption": {
+      "weight": 0.20,
+      "minWeeklyDownloads": 50000,
+      "minGitHubStars": 1000,
+      "licensePermissiveList": [
+        "MIT",
+        "Apache-2.0",
+        "BSD-3-Clause",
+        "ISC"
+      ]
+    }
+  },
+  "passThresholdScore": 0.75,
+  "autoRejectConditions": [
+    "UNPATCHED_HIGH_OR_CRITICAL_CVE",
+    "DEPRECATED_PACKAGE_STATUS",
+    "NON_PERMISSIVE_OR_VIRAL_GPL_IN_PROPRIETARY"
+  ]
+}

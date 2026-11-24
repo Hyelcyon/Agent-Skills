@@ -1,0 +1,19 @@
+{
+  "protocol": "OAuth 2.1",
+  "mandatory_requirements": {
+    "pkce": true,
+    "code_challenge_method": "S256",
+    "exact_redirect_uri_matching": true,
+    "disallowed_grants": [
+      "implicit",
+      "resource_owner_password_credentials"
+    ]
+  },
+  "cookie_security_baseline": {
+    "http_only": true,
+    "secure": true,
+    "same_site": "Strict",
+    "path": "/",
+    "max_age_seconds": 604800
+  }
+}
