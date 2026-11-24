@@ -1,3 +1,5 @@
+--!strict
+
 export type RateLimiter = {
     consume: (self: RateLimiter, playerId: number) -> boolean
 }

@@ -14,7 +14,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        manualChunks(id: string) {
+        manualChunks(id: string): string | undefined {
           if (id.includes('node_modules')) {
             if (id.includes('react') || id.includes('react-dom')) {
               return 'vendor-react';
@@ -24,6 +24,7 @@ export default defineConfig({
             }
             return 'vendor';
           }
+          return undefined;
         }
       }
     }

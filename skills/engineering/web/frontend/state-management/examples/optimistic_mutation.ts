@@ -43,8 +43,9 @@ class OptimisticTodoMutationHandler {
 
   onError(context?: MutationContext<TodoItem[]>): void {
     const queryKey = ['todos'] as const;
-    if (context?.previousData) {
-      this.queryClient.setQueryData(queryKey, () => context.previousData!);
+    const previous = context?.previousData;
+    if (previous) {
+      this.queryClient.setQueryData(queryKey, () => previous);
     }
   }
 

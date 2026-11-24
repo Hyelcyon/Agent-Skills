@@ -1,4 +1,4 @@
-import { randomBytes, createHash } from 'node:crypto';
+import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 
 interface PkcePair {
   codeVerifier: string;
@@ -26,7 +26,14 @@ function verifyPkceChallenge(codeVerifier: string, expectedChallenge: string): b
     .update(codeVerifier, 'ascii')
     .digest('base64url');
 
-  return computedChallenge === expectedChallenge;
+  const computedBuf = Buffer.from(computedChallenge, 'utf8');
+  const expectedBuf = Buffer.from(expectedChallenge, 'utf8');
+
+  if (computedBuf.length !== expectedBuf.length) {
+    return false;
+  }
+
+  return timingSafeEqual(computedBuf, expectedBuf);
 }
 
 export { generatePkcePair, verifyPkceChallenge };

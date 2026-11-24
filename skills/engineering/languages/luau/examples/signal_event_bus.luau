@@ -1,3 +1,5 @@
+--!strict
+
 export type Connection = {
     disconnect: () => ()
 }
