@@ -99,13 +99,15 @@ def execute_with_jittered_retry(operation: Callable[[], T], max_attempts: int = 
 ---
 
 ## 3. Critical Anti-Patterns to Avoid
+- ❌ AI Slop Comments: Paraphrasing syntax line-by-line (`// loop over items`), category banners (`// --- HELPERS ---`), or session tombstoning.
+- ❌ AI Slop Documentation: Throat-clearing openers (*"In today's fast-paced..."*), marketing puffery (*"seamlessly"*, *"cutting-edge"*), and generic content-free laundry lists.
 - ❌ Authoring comments, docstrings, or code identifiers in non-English languages (degrades readability and tool interoperability).
-- ❌ Paraphrasing code line-by-line (adds cognitive load with zero information).
 - ❌ Committing commented-out code blocks (`// oldImplementation()`).
 - ❌ Leaving stale comments after modifying function parameters or return values.
 - ❌ Writing vague comments like `// hack` or `// fix later` without explaining the root cause.
 
 ## References & Documentation
+- AI Slop Elimination Guide: [references/ai-slop-elimination-guide.md](./references/ai-slop-elimination-guide.md)
 - Ousterhout's Commenting Philosophy: [references/ousterhout-comment-philosophy.md](./references/ousterhout-comment-philosophy.md)
 - Senior vs Junior Comments Comparison: [references/senior-vs-junior-comments.md](./references/senior-vs-junior-comments.md)
 - Docstring Contracts & Invariants: [references/docstring-contracts-and-invariants.md](./references/docstring-contracts-and-invariants.md)

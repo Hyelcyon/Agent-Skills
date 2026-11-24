@@ -27,7 +27,7 @@ Follow the standard 5-phase engineering protocol when operating in Senior mode:
 
 ### Phase 3: Minimal Surgical Execution
 - Implement the smallest coherent change that solves the issue.
-- Maintain zero inline noise comments and author all code in English.
+- Maintain zero inline noise comments, eliminate AI slop in comments and documentation, and author all code in English.
 - Review guidelines in [Minimal Diff Principles](./references/minimal-diff-principles.md) and [YAGNI & Premature Abstraction Defense](./references/yagni-and-premature-abstraction.md).
 
 ### Phase 4: Evidence-Based Verification
