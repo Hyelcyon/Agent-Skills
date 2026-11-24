@@ -30,8 +30,9 @@ export class EventScheduler {
   isUpcoming(eventIsoString, thresholdHours = 24) {
     const eventTime = Temporal.ZonedDateTime.from(eventIsoString);
     const now = Temporal.Now.zonedDateTimeISO(this.#timeZone);
-    const difference = eventTime.since(now, { largestUnit: 'hours' });
+    const remaining = now.until(eventTime);
+    const hours = remaining.total({ unit: 'hour' });
 
-    return difference.hours >= 0 && difference.hours <= thresholdHours;
+    return hours >= 0 && hours <= thresholdHours;
   }
 }

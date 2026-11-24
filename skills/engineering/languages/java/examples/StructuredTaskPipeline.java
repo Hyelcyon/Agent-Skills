@@ -10,12 +10,15 @@ public class StructuredTaskPipeline {
     public record CombinedAccountState(UserProfile profile, UserCreditScore score) {}
 
     public CombinedAccountState aggregateUserData(String userId) throws Exception {
-        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            Future<UserProfile> profileTask = executor.submit(() -> queryUserProfile(userId));
-            Future<UserCreditScore> creditTask = executor.submit(() -> queryCreditScore(userId));
+        Future<UserProfile> profileTask;
+        Future<UserCreditScore> creditTask;
 
-            return new CombinedAccountState(profileTask.resultNow(), creditTask.resultNow());
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            profileTask = executor.submit(() -> queryUserProfile(userId));
+            creditTask = executor.submit(() -> queryCreditScore(userId));
         }
+
+        return new CombinedAccountState(profileTask.resultNow(), creditTask.resultNow());
     }
 
     private UserProfile queryUserProfile(String userId) throws InterruptedException {

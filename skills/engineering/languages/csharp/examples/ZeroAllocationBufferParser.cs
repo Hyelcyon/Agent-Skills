@@ -1,6 +1,8 @@
 namespace Enterprise.Core.Parsing;
 
+using System;
 using System.Buffers;
+using System.IO;
 
 public sealed class ZeroAllocationBufferParser
 {

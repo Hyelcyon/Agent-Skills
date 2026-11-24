@@ -32,7 +32,7 @@ impl SecureChannel<Uninitialized> {
         if secret.is_empty() {
             return Err(PipelineError::Unauthorized);
         }
-        *self.token.lock().unwrap() = Some(secret.to_string());
+        *self.token.lock().expect("token lock should not be poisoned") = Some(secret.to_string());
         Ok(SecureChannel {
             endpoint: self.endpoint,
             token: self.token,
