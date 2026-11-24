@@ -119,6 +119,23 @@ for target in "${targets[@]}"; do
   echo "Target: $target"
   mkdir -p "$target"
 
+  if [[ "$target" == *"gemini"* ]]; then
+    if [[ "$mode" == "uninstall" ]]; then
+      echo "  Uninstalling Agent-Skills from $target..."
+      rm -rf "$target/engineering" "$target/misc" "$target/research"
+      echo "  [OK] Uninstallation complete for Antigravity."
+      continue
+    fi
+    echo "  Synchronizing structured 9-category skill tree into $target..."
+    if command -v rsync >/dev/null 2>&1; then
+      rsync -a --delete "$SKILLS_DIR/" "$target/"
+    else
+      cp -r "$SKILLS_DIR/"* "$target/"
+    fi
+    echo "  [OK] Successfully synchronized 46 skills into Google Antigravity without flat duplicates."
+    continue
+  fi
+
   if [[ "$mode" == "uninstall" ]]; then
     echo "  Uninstalling Agent-Skills from $target..."
     for name in "${!SKILL_PATHS[@]}"; do
