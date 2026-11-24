@@ -40,8 +40,8 @@ function buildPaginatedResponse<T extends ItemWithTimestamp>(
   const items = hasMore ? rows.slice(0, pageSize) : rows;
 
   let nextCursor: string | null = null;
-  if (hasMore && items.length > 0) {
-    const lastItem = items[items.length - 1];
+  const lastItem = hasMore ? items[items.length - 1] : undefined;
+  if (lastItem) {
     nextCursor = encodeCursor({
       createdAt: lastItem.createdAt.toISOString(),
       id: lastItem.id

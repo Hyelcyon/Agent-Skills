@@ -1,12 +1,12 @@
 import asyncio
-from typing import List, Dict, Any
+from typing import Any
 
-async def fetch_tenant_metric(tenant_id: str, delay: float) -> Dict[str, Any]:
+async def fetch_tenant_metric(tenant_id: str, delay: float) -> dict[str, Any]:
     await asyncio.sleep(delay)
     return {"tenant_id": tenant_id, "status": "active", "throughput": 150}
 
-async def gather_all_telemetry(tenant_ids: List[str]) -> List[Dict[str, Any]]:
-    results: List[Dict[str, Any]] = []
+async def gather_all_telemetry(tenant_ids: list[str]) -> list[dict[str, Any]]:
+    results: list[dict[str, Any]] = []
     async with asyncio.TaskGroup() as tg:
         tasks = [
             tg.create_task(fetch_tenant_metric(tid, 0.05))

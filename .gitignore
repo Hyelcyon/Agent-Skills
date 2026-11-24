@@ -1,37 +1,118 @@
-# OS metadata
+# Operating System Artifacts
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# Python bytecode & caches
+# IDE & Editor Configurations
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Python (Python 3.12 / 3.13)
 __pycache__/
 *.py[cod]
 *$py.class
-.ruff_cache/
+*.so
+.Python
+env/
+venv/
+.venv/
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
 
-# Node / JS
+# Node.js, TypeScript & Web (Vite, Next.js, Angular, Svelte, Vue)
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Build artifacts & coverage
-bin/
+pnpm-debug.log*
+.pnpm-store/
 dist/
-build/
+dist-ssr/
+out/
+.next/
+.svelte-kit/
+.turbo/
+*.tsbuildinfo
+
+# Rust (Cargo)
+target/
+**/*.rs.bk
+*.profraw
+*.profdata
+
+# Go
+bin/
+pkg/
+*.test
+*.prof
 *.out
-*.exe
 coverage.out
 
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
+# C / C++ (CMake, Make, MSVC)
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.exe
+CMakeFiles/
+CMakeCache.txt
+Makefile.old
+*.ninja
+.ninja_*
 
-# Environment & secrets
+# C# / .NET (.NET 8 / 9)
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.pidb
+*.booproj
+*.sln.docstates
+
+# Java / JVM (Gradle, Maven)
+build/
+.gradle/
+*.class
+*.jar
+*.war
+*.ear
+
+# Luau / Roblox Tooling
+.rojo/
+*.rbxlx.lock
+*.rbxl.lock
+
+# Security, Environment & Credentials
 .env
 .env.*
-*.local
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+*.vault
+secrets/
+credentials/

@@ -26,7 +26,7 @@ export class SlidingWindowRateLimiter {
     record.timestamps = record.timestamps.filter((t) => t > windowStart);
 
     if (record.timestamps.length >= this.maxRequests) {
-      const oldestInWindow = record.timestamps[0];
+      const oldestInWindow = record.timestamps[0] ?? now;
       const retryAfterSeconds = Math.ceil((oldestInWindow + this.windowMs - now) / 1000);
       return {
         allowed: false,

@@ -1,9 +1,8 @@
 #include <expected>
-#include <string>
+#include <iostream>
+#include <ranges>
 #include <string_view>
 #include <vector>
-#include <ranges>
-#include <iostream>
 
 enum class DomainError {
     EmptyPayload,
@@ -11,7 +10,7 @@ enum class DomainError {
     Overflow
 };
 
-std::expected<int, DomainError> parse_reading(std::string_view raw) {
+std::expected<int, DomainError> parse_reading(std::string_view raw) noexcept {
     if (raw.empty()) {
         return std::unexpected(DomainError::EmptyPayload);
     }
@@ -26,14 +25,15 @@ std::expected<int, DomainError> parse_reading(std::string_view raw) {
 }
 
 int main() {
-    std::vector<std::string_view> inputs = {"10", "invalid", "42", "0"};
-    namespace views = std::views;
+    const std::vector<std::string_view> inputs = {"10", "invalid", "42", "0"};
 
-    for (std::string_view item : inputs) {
-        auto result = parse_reading(item);
-        if (result) {
-            std::cout << "Value: " << *result << '\n';
-        }
+    auto valid_readings = inputs
+        | std::views::transform(parse_reading)
+        | std::views::filter([](const auto& res) { return res.has_value(); })
+        | std::views::transform([](const auto& res) { return *res; });
+
+    for (int value : valid_readings) {
+        std::cout << "Value: " << value << '\n';
     }
     return 0;
 }

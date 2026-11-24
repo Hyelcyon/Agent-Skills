@@ -105,7 +105,8 @@ public final class RecordPatternDispatcher {
             case OrderCancelled(var id, var time, var orderId, var reason) ->
                 new Success(id, "Order " + orderId + " cancelled: " + reason);
 
-            case ShipmentDispatched(var id, var time, var orderId, var tracking, Address(var street, var city, var zip, "US")) ->
+            case ShipmentDispatched(var id, var time, var orderId, var tracking, Address(var street, var city, var zip, var country))
+                when "US".equalsIgnoreCase(country) ->
                 new Success(id, "Domestic shipment dispatched for order " + orderId + " with tracking " + tracking);
 
             case ShipmentDispatched(var id, var time, var orderId, var tracking, Address(var street, var city, var zip, var country)) ->

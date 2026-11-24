@@ -22,7 +22,7 @@ public class VirtualThreadWorkerPool {
                     .toList();
 
             return futures.stream()
-                    .map(Future::join)
+                    .map(Future::resultNow)
                     .toList();
         }
     }

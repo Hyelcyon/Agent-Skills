@@ -19,10 +19,15 @@ function dispatchEvent(event: UserEvent): string {
   }
 }
 
-const API_ENDPOINTS = {
+interface ApiEndpoints {
+  readonly auth: string;
+  readonly billing: string;
+}
+
+const API_ENDPOINTS: ApiEndpoints = {
   auth: '/api/v1/auth',
   billing: '/api/v1/billing',
-} as const satisfies Record<string, string>;
+} as const satisfies ApiEndpoints;
 
 export { dispatchEvent, API_ENDPOINTS };
-export type { Result, UserEvent };
+export type { Result, UserEvent, ApiEndpoints };

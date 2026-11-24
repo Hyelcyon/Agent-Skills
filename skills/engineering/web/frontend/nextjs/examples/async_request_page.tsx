@@ -17,19 +17,19 @@ export default async function TenantDashboardPage({ params, searchParams }: Page
   const host = headersList.get('host') || 'unknown';
 
   return (
-    <main class="dashboard-container">
-      <header class="dashboard-header">
+    <main className="dashboard-container">
+      <header className="dashboard-header">
         <h1>Tenant: {tenantId}</h1>
         <p>Host: {host}</p>
         <p>Authenticated: {sessionToken ? 'Yes' : 'No'}</p>
       </header>
 
-      <nav class="dashboard-nav">
+      <nav className="dashboard-nav">
         <Link href={`/tenants/${tenantId}?tab=metrics`}>Metrics</Link>
         <Link href={`/tenants/${tenantId}?tab=settings`}>Settings</Link>
       </nav>
 
-      <section class="dashboard-content">
+      <section className="dashboard-content">
         <h2>Active Tab: {tab}</h2>
       </section>
     </main>

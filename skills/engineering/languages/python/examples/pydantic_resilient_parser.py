@@ -1,32 +1,15 @@
-from dataclasses import dataclass
-from typing import Optional, Dict, Any
+from typing import Any
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-@dataclass(frozen=True)
-class TenantConfig:
-    tenant_id: str
-    max_concurrency: int
-    enable_debug: bool = False
+class TenantConfig(BaseModel):
+    model_config = ConfigDict(strict=True, frozen=True, extra="forbid")
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TenantConfig":
-        raw_id = data.get("tenant_id")
-        if not isinstance(raw_id, str) or not raw_id.strip():
-            raise ValueError("tenant_id must be a non-empty string")
+    tenant_id: str = Field(min_length=1)
+    max_concurrency: int = Field(default=10, gt=0)
+    enable_debug: bool = Field(default=False)
 
-        raw_concurrency = data.get("max_concurrency", 10)
-        if not isinstance(raw_concurrency, int) or raw_concurrency <= 0:
-            raise ValueError("max_concurrency must be a positive integer")
-
-        raw_debug = bool(data.get("enable_debug", False))
-
-        return cls(
-            tenant_id=raw_id.strip(),
-            max_concurrency=raw_concurrency,
-            enable_debug=raw_debug
-        )
-
-def safe_parse_tenant(payload: Dict[str, Any]) -> Optional[TenantConfig]:
+def safe_parse_tenant(payload: dict[str, Any]) -> TenantConfig | None:
     try:
-        return TenantConfig.from_dict(payload)
-    except ValueError:
+        return TenantConfig.model_validate(payload)
+    except ValidationError:
         return None

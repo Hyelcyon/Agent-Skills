@@ -82,11 +82,11 @@ async function safeHttpsFetch(targetUrl: string): Promise<FetchResult> {
         },
         timeout: 5000
       },
-      (res) => {
+      (res: http.IncomingMessage) => {
         let body = '';
         res.setEncoding('utf8');
-        res.on('data', (chunk) => {
-          body += chunk;
+        res.on('data', (chunk: string | Buffer) => {
+          body += chunk.toString();
         });
         res.on('end', () => {
           resolve({
@@ -102,7 +102,7 @@ async function safeHttpsFetch(targetUrl: string): Promise<FetchResult> {
       reject(new Error('Request timed out'));
     });
 
-    req.on('error', (err) => {
+    req.on('error', (err: Error) => {
       reject(err);
     });
 

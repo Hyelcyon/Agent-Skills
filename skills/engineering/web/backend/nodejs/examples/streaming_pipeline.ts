@@ -28,7 +28,7 @@ async function runStreamingPipeline(entries: LogEntry[]): Promise<string> {
   let output = '';
 
   const collector = new Transform({
-    transform(chunk: Buffer, _encoding, callback) {
+    transform(chunk: Buffer, _encoding: BufferEncoding, callback: (error?: Error | null) => void) {
       output += chunk.toString('utf8');
       callback();
     }
