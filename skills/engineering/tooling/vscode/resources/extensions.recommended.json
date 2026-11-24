@@ -1,0 +1,22 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "charliermarsh.ruff",
+    "ms-python.python",
+    "ms-python.debugpy",
+    "rust-lang.rust-analyzer",
+    "vadimcn.vscode-lldb",
+    "golang.go",
+    "ms-dotnettools.csharp",
+    "ms-vscode.cpptools",
+    "eamodio.gitlens",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml"
+  ],
+  "unwantedRecommendations": [
+    "ms-python.black-formatter",
+    "ms-python.isort",
+    "hookyqr.beautify"
+  ]
+}

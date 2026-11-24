@@ -76,7 +76,7 @@ This repository includes native manifest declarations for direct discovery acros
 
 ---
 
-## 4. Skills Taxonomy (46 Skills)
+## 4. Skills Taxonomy (47 Skills)
 
 ### Languages & Systems
 | Skill | Target Runtime / Standard | Primary Invariants |
@@ -130,6 +130,7 @@ This repository includes native manifest declarations for direct discovery acros
 | :--- | :--- | :--- |
 | **`git`** | Version Control | Atomic conventional commits, interactive rebasing, bisecting |
 | **`github`** | Repository Governance | SemVer guardrails, CODEOWNERS, ruleset branch protection |
+| **`vscode`** | Editor Toolchain | Polyglot `settings.json`, `launch.json` debug pipelines, `tasks.json` problem matchers |
 | **`npm` / `pnpm` / `vite`** | Package & Build Tooling | Catalogs, strict non-flat isolation, manual chunk splitting |
 | **`senior`** | Craftsmanship | Minimal coherent diffs, zero trivial comments, root-cause fixes |
 | **`deep-research`** | Architectural Spikes | Pugh decision matrices, Architecture Decision Records (ADR) |

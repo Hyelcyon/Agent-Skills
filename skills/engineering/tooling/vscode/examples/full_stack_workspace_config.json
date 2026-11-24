@@ -1,0 +1,61 @@
+{
+  "folders": [
+    {
+      "name": "Frontend (Web)",
+      "path": "apps/web"
+    },
+    {
+      "name": "Backend (API)",
+      "path": "apps/api"
+    },
+    {
+      "name": "Shared Packages",
+      "path": "packages/shared"
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.next": true
+    }
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "API: Fastify Server",
+        "type": "node",
+        "request": "launch",
+        "cwd": "${workspaceFolder:Backend (API)}",
+        "runtimeExecutable": "pnpm",
+        "runtimeArgs": ["run", "dev"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+      },
+      {
+        "name": "Web: Next.js Client",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:3000",
+        "webRoot": "${workspaceFolder:Frontend (Web)}"
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Full Stack Dev",
+        "configurations": [
+          "API: Fastify Server",
+          "Web: Next.js Client"
+        ],
+        "stopAll": true
+      }
+    ]
+  }
+}

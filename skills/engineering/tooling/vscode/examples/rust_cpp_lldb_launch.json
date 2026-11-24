@@ -1,0 +1,46 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Rust: Debug Service Binary",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debug/api-server",
+      "args": ["--config", "configs/dev.toml"],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "cargo: build debug",
+      "stopOnEntry": false,
+      "terminal": "integrated",
+      "env": {
+        "RUST_BACKTRACE": "1",
+        "RUST_LOG": "info,api_server=debug"
+      },
+      "sourceLanguages": ["rust"]
+    },
+    {
+      "name": "Rust: Debug Integration Test",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test",
+          "integration_tests"
+        ]
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "C++: LLDB Native Debug",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/bin/native_engine",
+      "args": ["--threads", "4"],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "cmake: build",
+      "stopOnEntry": false
+    }
+  ]
+}

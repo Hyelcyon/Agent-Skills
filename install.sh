@@ -132,7 +132,7 @@ for target in "${targets[@]}"; do
     else
       cp -r "$SKILLS_DIR/"* "$target/"
     fi
-    echo "  [OK] Successfully synchronized 46 skills into Google Antigravity without flat duplicates."
+    echo "  [OK] Successfully synchronized ${#SKILL_PATHS[@]} skills into Google Antigravity without flat duplicates."
     continue
   fi
 
