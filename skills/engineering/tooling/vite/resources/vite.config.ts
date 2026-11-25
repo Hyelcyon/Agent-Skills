@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite';
-import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
   build: {
@@ -15,11 +15,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id: string): string | undefined {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
+          const normalizedId = id.replaceAll('\\', '/');
+          if (normalizedId.includes('/node_modules/')) {
+            if (/\/node_modules\/(?:react|react-dom|scheduler)\//.test(normalizedId)) {
               return 'vendor-react';
             }
-            if (id.includes('@tanstack/react-query')) {
+            if (normalizedId.includes('/node_modules/@tanstack/react-query/')) {
               return 'vendor-query';
             }
             return 'vendor';

@@ -27,7 +27,9 @@ Always open modal dialogs using `.showModal()`, never `.show()`:
 ```typescript
 export function openModalDialog(dialog: HTMLDialogElement): Promise<string> {
   return new Promise((resolve) => {
-    dialog.showModal();
+    if (!dialog.open) {
+      dialog.showModal();
+    }
     dialog.addEventListener(
       'close',
       () => {
@@ -51,7 +53,7 @@ export function openModalDialog(dialog: HTMLDialogElement): Promise<string> {
 The Popover API provides top-layer popups, tooltips, menus, and comboboxes with zero JavaScript requirement for toggle and light dismiss:
 
 ```html
-<button popovertarget="user-action-menu">Open Menu</button>
+<button type="button" popovertarget="user-action-menu">Open Menu</button>
 
 <div id="user-action-menu" popover="auto" class="menu-popup">
   <ul>

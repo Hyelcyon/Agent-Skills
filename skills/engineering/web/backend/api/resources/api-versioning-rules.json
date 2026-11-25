@@ -5,8 +5,8 @@
   ],
   "deprecationPolicy": {
     "minimumSunsetNoticeMonths": 6,
-    "sunsetHeader": "Sunset: Wed, 11 Nov 2026 00:00:00 GMT",
-    "deprecationHeader": "Deprecation: @1762819200",
+    "sunsetHeader": "Wed, 11 Nov 2026 00:00:00 GMT",
+    "deprecationHeader": "@1762819200",
     "linkHeader": "<https://api.enterprise.com/v2/migration>; rel=\"successor-version\""
   }
 }

@@ -1,7 +1,7 @@
 import ida_auto
-import ida_ida
 import ida_funcs
-import ida_name
+import ida_ida
+
 
 def init_analysis_environment():
     ida_auto.auto_wait()

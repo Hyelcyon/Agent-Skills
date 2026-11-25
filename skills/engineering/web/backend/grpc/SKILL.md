@@ -114,19 +114,16 @@ server = grpc.server(
 ```
 
 ### Phase 4: Resilience & Deadline Propagation
-Invoke client with explicit context timeouts:
+Invoke calls with explicit context timeouts, full jitter on backoff, and idempotency safety (never automatically retry non-idempotent mutations unless an idempotency key guarantees deduplication):
 ```python
 # Pass 3.0 second deadline
 response = stub.ProcessPayment(request, timeout=3.0)
 ```
 
 ### Phase 5: Verification & Contract Interrogation
-Query the running server via reflection without local proto files:
+Query the running development server via reflection (restrict plaintext `add_insecure_port` strictly to loopback/mesh-terminated TLS endpoints; enforce TLS/mTLS + `hmac.compare_digest` token verification in production):
 ```bash
-# List exposed services
 grpcurl -plaintext localhost:50051 list
-
-# Call health check endpoint
 grpcurl -plaintext -d '{"service": "payment.v1.PaymentService"}' localhost:50051 grpc.health.v1.Health/Check
 ```
 

@@ -9,7 +9,7 @@
     },
     "maintenanceAndFreshness": {
       "weight": 0.25,
-      "maxDaysSinceLastRelease": 120,
+      "maxDaysSinceLastRelease": 180,
       "openIssuesToPrRatioThreshold": 3.0,
       "multipleMaintainersRequired": true
     },

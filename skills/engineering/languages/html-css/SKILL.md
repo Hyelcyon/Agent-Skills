@@ -53,9 +53,9 @@ Implement fluid layouts using CSS Grid and Flexbox. Use `@container` queries for
 Leverage relational selectors (`:has()`) and native state pseudo-classes (`:focus-visible`, `:checked`, `:popover-open`). Provide reduced motion fallbacks via `@media (prefers-reduced-motion: reduce)`.
 
 ### Phase 5: Verification & Accessibility Proof
-Audit markup with automated accessibility testing engines:
+Audit markup against a running test fixture with automated accessibility testing engines (never run a blocking dev server synchronously):
 ```bash
-npx axe-cli http://localhost:3000
+npx @axe-core/cli http://localhost:3000
 ```
 
 ---

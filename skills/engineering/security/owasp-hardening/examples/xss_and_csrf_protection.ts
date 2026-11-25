@@ -1,4 +1,4 @@
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import { timingSafeEqual, randomBytes } from 'node:crypto';
 
 interface CsrfSessionContext {
@@ -15,10 +15,16 @@ function escapeHtml(unsafeText: string): string {
     .replaceAll("'", '&#039;');
 }
 
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+    node.setAttribute('rel', 'noopener noreferrer');
+  }
+});
+
 function sanitizeRichText(dirtyHtml: string): string {
   return DOMPurify.sanitize(dirtyHtml, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'ul', 'ol', 'li', 'code', 'pre'],
-    ALLOWED_ATTR: ['href', 'title', 'target'],
+    ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
     ALLOW_DATA_ATTR: false,
     SAFE_FOR_TEMPLATES: true
   });

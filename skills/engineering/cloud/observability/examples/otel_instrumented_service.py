@@ -1,13 +1,14 @@
 import logging
+import os
 import time
-from typing import Any, Dict
+from typing import Any
 from wsgiref.simple_server import make_server
 
 from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.sdk.resources import Resource
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 resource = Resource.create({"service.name": "order-processor", "service.version": "1.0.0"})
 tracer_provider = TracerProvider(resource=resource)
@@ -47,7 +48,7 @@ handler.setFormatter(logging.Formatter('{"time":"%(asctime)s","level":"%(levelna
 logger.addHandler(handler)
 logger.addFilter(ContextFilter())
 
-def application(environ: Dict[str, Any], start_response: Any) -> Any:
+def application(environ: dict[str, Any], start_response: Any) -> Any:
     path = environ.get("PATH_INFO", "/")
     method = environ.get("REQUEST_METHOD", "GET")
 
@@ -80,5 +81,13 @@ def application(environ: Dict[str, Any], start_response: Any) -> Any:
         return [body]
 
 if __name__ == "__main__":
-    server = make_server("0.0.0.0", 8080, application)
-    server.serve_forever()
+    bind_host = os.environ.get("BIND_HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "8080"))
+    server = make_server(bind_host, port, application)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+        tracer_provider.shutdown()

@@ -30,20 +30,20 @@ Phase 5: Sanitizer & Memory Leak Verification (ASan, UBSan, Valgrind)
 ```
 
 ### Phase 1: Compiler Standard & Warning Baseline
-Verify CMake targets C++20 or C++23 standard. Mandate strict compiler warnings: `-Wall -Wextra -Wpedantic -Werror`.
+Verify CMake targets C++20 or C++23 standard. Mandate strict compiler warnings: `-Wall -Wextra -Wpedantic -Werror` on GCC/Clang and `/W4 /WX` on MSVC.
 
 ### Phase 2: Ownership Architecture & RAII Boundaries
 Never manage memory via raw `new` / `delete`. Mandate `std::unique_ptr` for exclusive ownership and standard containers for data buffers. Apply the Rule of Zero or explicitly define the Rule of Five.
 
 ### Phase 3: Compile-Time Constraint Formulation
-Constrain template interfaces using C++20 Concepts instead of legacy SFINAE:
+Constrain template interfaces using C++20 Concepts instead of legacy SFINAE, and guard against integer division truncation:
 ```cpp
 template <typename T>
 concept Numeric = std::integral<T> || std::floating_point<T>;
 
 template <Numeric T>
-T calculate_ratio(T part, T total) {
-    return total == static_cast<T>(0) ? static_cast<T>(0) : (part / total);
+double calculate_ratio(T part, T total) {
+    return total == static_cast<T>(0) ? 0.0 : (static_cast<double>(part) / static_cast<double>(total));
 }
 ```
 
@@ -60,12 +60,14 @@ ctest --test-dir build --output-on-failure
 
 ---
 
-## Prohibited Anti-Patterns
+## Prohibited Anti-Patterns & Fatal Mistakes
 
 - ❌ Calling `new` or `delete` directly (use `std::make_unique` or standard containers).
+- ❌ Returning dangling `std::string_view` or `std::span` to destroyed temporaries/local buffers.
 - ❌ Using `return std::move(localVar)` (inhibits RVO/NRVO copy elision).
 - ❌ Using preprocessor macros for type metaprogramming (use Concepts or `constexpr`).
 - ❌ Omitting `noexcept` on move constructors and move assignment operators.
+- ❌ Ignoring integer truncation or signed/unsigned overflow UB without sanitizer verification.
 - ❌ Slicing polymorphic objects by passing them by value instead of `const&` or smart pointer.
 
 ---

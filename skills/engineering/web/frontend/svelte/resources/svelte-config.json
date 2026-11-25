@@ -1,12 +1,9 @@
 {
   "compilerOptions": {
     "runes": true,
-    "immutable": true
+    "css": "external",
+    "preserveComments": false,
+    "modernAst": true
   },
-  "kit": {
-    "adapter": "@sveltejs/adapter-auto",
-    "prerender": {
-      "concurrency": 4
-    }
-  }
+  "runtimeConfigFile": "svelte.config.js"
 }

@@ -57,7 +57,7 @@ When negative search returns results:
 | **API Deprecated in Target Version** | Do NOT use. Search for the designated replacement symbol and target its migration guide. |
 | **Breaking Change Documented in Release Notes** | Update signature to the new spec immediately; verify that no legacy options are passed. |
 | **Open GitHub Issue with Reproduction** | Inspect whether an official workaround exists. If unpatched, select an alternative library or design. |
-| **Runtime Incompatibility (e.g. Node vs. Edge)** | Validate target execution environment before code insertion (e.g. switch to Web Crypto or bcrypt-ts). |
+| **Runtime Incompatibility (e.g. Node vs. Edge)** | Validate target execution environment before code insertion (e.g., switch to Web Crypto `crypto.subtle` PBKDF2 or an edge-compatible pure-JS library). |
 | **Zero Negative Evidence Found** | Confidence established. Proceed to Phase 5 (Empirical Scratch Proof). |
 
 ---

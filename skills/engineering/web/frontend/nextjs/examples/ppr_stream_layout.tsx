@@ -3,19 +3,31 @@ import { cookies } from 'next/headers';
 
 export const experimental_ppr = true;
 
+interface VerifiedProfile {
+  displayName: string;
+}
+
+async function resolveAuthenticatedProfile(sessionToken: string): Promise<VerifiedProfile | null> {
+  // Replace with cryptographic session verification and user store lookup
+  if (sessionToken.length < 16) {
+    return null;
+  }
+  return { displayName: 'Authenticated Member' };
+}
+
 async function DynamicUserProfile() {
   const cookieStore = await cookies();
-  const userCookie = cookieStore.get('user_id');
+  const sessionToken = cookieStore.get('session_token')?.value;
+  const profile = sessionToken ? await resolveAuthenticatedProfile(sessionToken) : null;
 
-  if (!userCookie) {
+  if (!profile) {
     return <div className="guest-banner">Welcome, Guest Visitor</div>;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 100));
-
+  // Never render raw cookie/session tokens into DOM output
   return (
     <div className="user-profile-badge">
-      <span>Active Session ID: {userCookie.value}</span>
+      <span>Signed in as: {profile.displayName}</span>
     </div>
   );
 }

@@ -39,7 +39,7 @@ const { codeVerifier, codeChallenge } = generatePkcePair();
 ```
 
 ### Phase 3: Token Boundary Shielding
-Adopt the Backend-for-Frontend (BFF) proxy pattern. Store access/refresh tokens in server-side session stores or encrypted `__Host-` prefixed `HttpOnly`, `SameSite=Strict`, `Secure` cookies.
+Adopt the Backend-for-Frontend (BFF) proxy pattern. Store access/refresh tokens in server-side session stores and bind browser sessions via encrypted `__Host-` prefixed `HttpOnly`, `Secure` cookies (`SameSite=Lax` when external OAuth 2.1 IdP top-level redirects must carry session continuity back to the callback; `SameSite=Strict` for state-changing internal APIs and privilege-step cookies).
 
 ### Phase 4: Session Lifecycle & Rotation
 Enforce dual timeouts (e.g., 15-minute idle timeout, 8-hour absolute timeout). Rotate session tokens on privilege escalation or login state transitions to prevent session fixation.

@@ -16,3 +16,6 @@ Analysis of trade-offs and reasons for rejecting competing options.
 
 ## 4. Security, Resilience & Migration Plan
 Rollback strategy, security boundaries, and zero-downtime deployment steps.
+
+## 5. Observability, SLAs & Non-Goals
+Key SLIs/SLOs, alerting thresholds, and explicit scope boundaries excluded from this RFC.

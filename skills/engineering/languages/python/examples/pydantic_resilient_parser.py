@@ -1,5 +1,7 @@
 from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
+
 
 class TenantConfig(BaseModel):
     model_config = ConfigDict(strict=True, frozen=True, extra="forbid")

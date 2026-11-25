@@ -5,6 +5,28 @@
 
 .p2align 6
 fast_streaming_copy_nt:
+    test rdx, rdx
+    jz .L_ret
+
+    # Align destination rdi to a 32-byte boundary before vmovntdq to prevent #GP faults
+    mov ecx, edi
+    and ecx, 31
+    jz .L_check_vec
+    mov eax, 32
+    sub eax, ecx
+    cmp rdx, rax
+    cmovb rax, rdx
+    sub rdx, rax
+
+.L_align_loop:
+    mov cl, byte ptr [rsi]
+    mov byte ptr [rdi], cl
+    inc rsi
+    inc rdi
+    dec rax
+    jnz .L_align_loop
+
+.L_check_vec:
     mov rax, rdx
     shr rax, 7
     jz .L_tail_copy
@@ -45,6 +67,7 @@ fast_streaming_copy_nt:
 
 .L_done:
     vzeroupper
+.L_ret:
     ret
 
 .size fast_streaming_copy_nt, .-fast_streaming_copy_nt

@@ -1,49 +1,83 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "LearningTaxonomySchema",
+  "title": "KnowledgeRegistrySchema",
+  "description": "Schema for ~/.gemini/config/knowledge/knowledge.json and .gemini/knowledge/knowledge.json registries.",
   "type": "object",
-  "required": ["id", "title", "category", "scope", "status", "created_at", "invariant"],
+  "additionalProperties": false,
+  "required": ["version", "entries"],
   "properties": {
-    "id": {
+    "version": {
       "type": "string",
-      "pattern": "^KC-[0-9]{3,}$"
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
     },
-    "title": {
-      "type": "string",
-      "minLength": 5,
-      "maxLength": 120
-    },
-    "category": {
-      "type": "string",
-      "enum": [
-        "environment",
-        "architecture",
-        "user_preference",
-        "workaround",
-        "tooling",
-        "test_harness"
-      ]
-    },
-    "scope": {
-      "type": "string",
-      "description": "File glob or path where this invariant applies"
-    },
-    "status": {
-      "type": "string",
-      "enum": ["Active", "Deprecated", "Superseded"]
-    },
-    "created_at": {
-      "type": "string",
-      "format": "date"
-    },
-    "invariant": {
-      "type": "string",
-      "description": "Clear statement of the mandatory rule or procedure"
-    },
-    "verification_command": {
-      "type": "string",
-      "description": "Command to verify the invariant holds"
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "category", "scope", "weight", "status", "path", "summary"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^KC-[0-9]{3,}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 120
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "environment",
+              "architecture",
+              "user_preference",
+              "workaround",
+              "tooling",
+              "test_harness"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1,
+            "description": "File glob or subsystem scope where this invariant applies"
+          },
+          "weight": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Active", "Deprecated", "Superseded"]
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^cards/KC-[0-9]{3,}.*\\.md$",
+            "description": "Relative path from the knowledge root to the atomic Markdown card"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 240
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "last_verified": {
+            "type": "string",
+            "format": "date"
+          },
+          "invariant": {
+            "type": "string",
+            "description": "Optional concise invariant statement mirroring the card"
+          },
+          "verification_command": {
+            "type": "string",
+            "description": "Command used to confirm the invariant holds"
+          }
+        }
+      }
     }
-  },
-  "additionalProperties": false
+  }
 }

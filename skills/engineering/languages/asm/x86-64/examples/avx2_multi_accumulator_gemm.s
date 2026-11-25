@@ -1,5 +1,6 @@
 .intel_syntax noprefix
 .global avx2_dot_product_4x
+.type avx2_dot_product_4x, @function
 .text
 
 .p2align 5
@@ -11,7 +12,7 @@ avx2_dot_product_4x:
 
     mov rax, rdx
     shr rax, 5
-    jz .L_scalar_remainder
+    jz .L_reduce_vector
 
 .p2align 5
 .L_unrolled_loop:
@@ -34,9 +35,17 @@ avx2_dot_product_4x:
     vaddps ymm2, ymm2, ymm3
     vaddps ymm0, ymm0, ymm2
 
-.L_scalar_remainder:
+.L_reduce_vector:
+    # Reduce upper 128 bits of ymm0 to scalar xmm0 BEFORE scalar tail, because VEX scalar ops zero ymm0[255:128]
+    vextractf128 xmm1, ymm0, 1
+    vaddps xmm0, xmm0, xmm1
+    vshufps xmm1, xmm0, xmm0, 0x4E
+    vaddps xmm0, xmm0, xmm1
+    vshufps xmm1, xmm0, xmm0, 0xB1
+    vaddss xmm0, xmm0, xmm1
+
     and edx, 31
-    jz .L_reduce_to_scalar
+    jz .L_done
 
 .L_tail_loop:
     vmovss xmm4, dword ptr [rdi]
@@ -46,15 +55,9 @@ avx2_dot_product_4x:
     dec edx
     jnz .L_tail_loop
 
-.L_reduce_to_scalar:
-    vextractf128 xmm1, ymm0, 1
-    vaddps xmm0, xmm0, xmm1
-    vshufps xmm1, xmm0, xmm0, 0x4E
-    vaddps xmm0, xmm0, xmm1
-    vshufps xmm1, xmm0, xmm0, 0xB1
-    vaddss xmm0, xmm0, xmm1
-
+.L_done:
     vzeroupper
     ret
 
+.size avx2_dot_product_4x, .-avx2_dot_product_4x
 .section .note.GNU-stack,"",@progbits

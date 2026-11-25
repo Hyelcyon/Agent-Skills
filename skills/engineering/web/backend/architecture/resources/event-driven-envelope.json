@@ -2,12 +2,14 @@
   "specversion": "1.0",
   "type": "com.enterprise.order.created",
   "source": "https://orders.enterprise.com",
+  "subject": "orders/ord_9901",
   "id": "A234-1234-1234",
   "time": "2026-11-02T23:30:00Z",
   "datacontenttype": "application/json",
+  "dataschema": "https://schemas.enterprise.com/orders/created/v1.json",
   "data": {
     "orderId": "ord_9901",
-    "amount": 25000,
+    "amountCents": 25000,
     "currency": "USD"
   }
 }

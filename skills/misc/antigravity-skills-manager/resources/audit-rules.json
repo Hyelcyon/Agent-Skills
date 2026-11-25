@@ -1,4 +1,13 @@
 {
+  "antigravityAppDiscovery": {
+    "scanDepth": 1,
+    "workspaceRoots": [".agents/skills", ".agent/skills"],
+    "globalRoots": ["~/.gemini/config/skills"],
+    "cliOnlyPathsToRejectInAppConfigs": [
+      "~/.gemini/antigravity-cli/skills",
+      "~/.gemini/skills"
+    ]
+  },
   "generalSkills": {
     "minReferences": 3,
     "minExamples": 3,
@@ -11,8 +20,13 @@
     "minResources": 3
   },
   "qualityGates": {
-    "zeroInlineComments": true,
+    "forbidEchoComments": true,
+    "allowInvariantWhyComments": true,
+    "minArtifactBytes": 40,
     "requireFrontmatter": true,
+    "requireDirNameMatch": true,
+    "maxNameLength": 64,
+    "maxDescriptionLength": 1024,
     "require5PhaseProtocol": true
   }
 }

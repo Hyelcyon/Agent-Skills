@@ -47,23 +47,29 @@ When assigned to prepare, configure, or audit an npm package for release, the ag
 
 ### Phase 3: Modern Export Mapping (`exports`)
 1. Ensure `"type": "module"` is configured for modern ESM packages.
-2. Configure conditional export maps with `"types"` listed as the first condition:
+2. Pair `"types"` **separately inside BOTH `"import"` and `"require"`** (putting one top-level `.d.ts` before `"import"`/`"require"` causes Dual Package Hazard type errors under `moduleResolution: "node16"`/`"bundler"`):
    ```json
    {
      "exports": {
        ".": {
-         "types": "./dist/index.d.ts",
-         "import": "./dist/index.js",
-         "require": "./dist/index.cjs"
+         "import": {
+           "types": "./dist/index.d.ts",
+           "default": "./dist/index.js"
+         },
+         "require": {
+           "types": "./dist/index.d.cts",
+           "default": "./dist/index.cjs"
+         }
        }
      }
    }
    ```
 
 ### Phase 4: Dry-Run Packing & Artifact Audit
-Never execute `npm publish` without verifying the tarball payload:
+Never execute `npm publish` without verifying the tarball payload and export resolution:
 ```bash
-npm publish --dry-run
+npm pack --dry-run
+npx --yes @arethetypeswrong/cli --pack .
 ```
 Inspect the output file list to verify that:
 - No `.env` or configuration secrets are included.

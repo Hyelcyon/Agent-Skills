@@ -29,4 +29,4 @@ A senior DevOps runbook covering multi-stage container optimization, non-root us
 In Unix systems, process ID 1 is responsible for reaping orphaned child processes and handling OS signals (`SIGTERM`, `SIGINT`).
 Standard Node.js or Python runtimes are not designed to act as init systems:
 - They ignore `SIGTERM` when running as PID 1, causing Docker to wait 10 seconds before forcibly killing the container with `SIGKILL`, resulting in dropped connections and corrupted transactions.
-- Solution: Use an explicit init system like `tini` or `dumb-init`, or execute Node directly with proper process signal handlers (`process.on('SIGTERM', ...)`).
+- Even with Node/Python `SIGTERM` handlers, runtimes without an init supervisor fail to reap orphaned child processes spawned by subshells. Use an explicit init system (`tini`, `dumb-init`, or `docker run --init`) alongside `process.on('SIGTERM', ...)` graceful draining.

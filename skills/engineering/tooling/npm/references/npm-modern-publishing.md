@@ -36,20 +36,30 @@ Traditional `main` and `module` fields are insufficient for modern module resolu
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./submodule": {
-      "types": "./dist/submodule.d.ts",
-      "import": "./dist/submodule.js",
-      "require": "./dist/submodule.cjs"
+      "import": {
+        "types": "./dist/submodule.d.ts",
+        "default": "./dist/submodule.js"
+      },
+      "require": {
+        "types": "./dist/submodule.d.cts",
+        "default": "./dist/submodule.cjs"
+      }
     }
   }
 }
 ```
 
-The `types` condition must always precede `import` and `require` in the object declaration.
+Declare `"types"` as the first key *inside each* `"import"` / `"require"` block (`.d.ts` for ESM, `.d.cts` for CJS) so consumers on `moduleResolution: "node16"`/`"nodenext"` avoid Dual Package Hazard type errors.
 
 ---
 

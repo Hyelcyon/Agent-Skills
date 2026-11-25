@@ -10,11 +10,11 @@ Signal inputs replace the legacy `@Input()` decorator with read-only signals.
 
 ### Declaration and Required Inputs
 ```typescript
-import { Component, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 
 @Component({
   selector: 'app-user-badge',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="badge">
       <span>{{ name() }}</span>
@@ -33,11 +33,11 @@ export class UserBadgeComponent {
 ### Input Transforms
 Use the `transform` property to parse or sanitize incoming values cleanly:
 ```typescript
-import { Component, input, booleanAttribute, numberAttribute } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, booleanAttribute, numberAttribute } from '@angular/core';
 
 @Component({
   selector: 'app-metric-gauge',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<div>Value: {{ value() }} | Disabled: {{ isDisabled() }}</div>`
 })
 export class MetricGaugeComponent {
@@ -54,12 +54,12 @@ Outputs notify parent components of events without the overhead of `EventEmitter
 
 ### Declaration and Emission
 ```typescript
-import { Component, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, output } from '@angular/core';
 
 @Component({
   selector: 'app-delete-button',
-  standalone: true,
-  template: `<button (click)="handleDelete()">Delete</button>`
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `<button type="button" (click)="handleDelete()">Delete</button>`
 })
 export class DeleteButtonComponent {
   readonly deleted = output<string>();
@@ -71,19 +71,24 @@ export class DeleteButtonComponent {
 ```
 
 ### Emitting from Observables
-Interoperate with RxJS streams using `outputFromObservable`:
+Interoperate with RxJS streams using `outputFromObservable` (guard browser globals for SSR safety):
 ```typescript
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { outputFromObservable } from '@angular/core/rxjs-interop';
-import { fromEvent } from 'rxjs';
+import { EMPTY, fromEvent } from 'rxjs';
 
 @Component({
   selector: 'app-window-tracker',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<div>Tracking resize events</div>`
 })
 export class WindowTrackerComponent {
-  readonly windowResized = outputFromObservable(fromEvent(window, 'resize'));
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  readonly windowResized = outputFromObservable(
+    this.isBrowser ? fromEvent(window, 'resize') : EMPTY
+  );
 }
 ```
 
@@ -94,13 +99,13 @@ export class WindowTrackerComponent {
 `model()` creates a writable signal input that automatically emits changes back to parents using standard two-way binding syntax `[(property)]`.
 
 ```typescript
-import { Component, model } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model } from '@angular/core';
 
 @Component({
   selector: 'app-toggle-switch',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <button (click)="toggle()">
+    <button type="button" (click)="toggle()">
       {{ enabled() ? 'Active' : 'Inactive' }}
     </button>
   `
@@ -126,14 +131,14 @@ Usage in parent template:
 Signal queries replace `@ViewChild` and `@ContentChild` with reactive signals that update automatically when the DOM updates.
 
 ```typescript
-import { Component, ElementRef, viewChild, viewChildren, AfterViewInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, viewChild } from '@angular/core';
 
 @Component({
   selector: 'app-form-focus',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <input #usernameInput type="text" placeholder="Username" />
-    <button (click)="focusInput()">Focus</button>
+    <button type="button" (click)="focusInput()">Focus</button>
   `
 })
 export class FormFocusComponent {

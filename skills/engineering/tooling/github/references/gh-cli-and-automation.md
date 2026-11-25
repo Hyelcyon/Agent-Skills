@@ -25,24 +25,33 @@ Setting `GH_TOKEN` allows all `gh` commands to execute without prompting for bro
 Manage the complete lifecycle of a pull request from the command line without opening a browser:
 
 ```bash
-gh pr create --title "feat(auth): integrate passkey webauthn provider" --body-file .github/templates/pr-description.md --assignee @me --label "security,feature"
-gh pr merge --auto --squash --delete-branch
+gh pr create \
+  --title "feat(telemetry): integrate sliding window rate limiter" \
+  --body-file .github/pull_request_template.md \
+  --draft \
+  --assignee "@me" \
+  --label "security,feature"
+
+# Execute merges only when explicitly approved by the user
+gh pr merge 123 --auto --squash --delete-branch
 ```
 
-The `--auto` flag schedules the pull request to merge automatically as soon as all required status checks pass and approvals are recorded.
+The `--auto` flag schedules the pull request to merge automatically once all required checks pass and approvals are recorded (requires "Allow auto-merge" enabled in repository settings).
 
 ---
 
 ## 3. Investigating CI Failures Headless
 
-When a workflow fails, retrieve exact failure logs directly into the terminal:
+`gh run view` prompts interactively if no `<run-id>` is supplied, causing automated shells to hang or error. Always resolve the exact `databaseId` first:
 
 ```bash
-gh run list --limit 5
-gh run view --log-failed
+RUN_ID="$(gh run list --status failure --limit 1 --json databaseId --jq '.[0].databaseId')"
+if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+  gh run view "$RUN_ID" --log-failed
+fi
 ```
 
-`gh run view --log-failed` extracts only the failed step's console logs, omitting thousands of irrelevant lines from passing steps.
+Passing an explicit run ID with `--log-failed` extracts only the failed step's console logs non-interactively.
 
 ---
 

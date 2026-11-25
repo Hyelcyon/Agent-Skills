@@ -39,7 +39,7 @@ When engineering Node.js services, the agent must execute these 5 sequential pha
 2. Use `node:` protocol prefix for all core standard library imports (`node:fs/promises`, `node:http`, `node:path`).
 
 ### Phase 3: Native Primitives Prioritization
-1. Use native TypeScript execution via `--experimental-strip-types` for scripts and test harnesses.
+1. Execute TypeScript cleanly via Node.js native type stripping (enabled by default in Node 22.18+ / 24+ / 26+, or `--experimental-strip-types` on 22.6-22.17); always run `npx tsc --noEmit` separately since Node strips types without type-checking.
 2. Utilize `node:sqlite` (`DatabaseSync`) for local persistence and testing instead of heavy native addons.
 3. Use `node:test` and `node:assert/strict` for automated test suites.
 

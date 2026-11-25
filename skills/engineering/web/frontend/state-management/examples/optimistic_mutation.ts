@@ -1,8 +1,16 @@
+interface QueryFilters {
+  queryKey: readonly unknown[];
+  exact?: boolean;
+}
+
+/**
+ * Minimal TanStack Query v5 cache client contract using single-object filter signatures.
+ */
 interface QueryCacheClient<TData> {
-  cancelQueries(queryKey: readonly string[]): Promise<void>;
-  getQueryData(queryKey: readonly string[]): TData | undefined;
-  setQueryData(queryKey: readonly string[], updater: (old: TData | undefined) => TData): void;
-  invalidateQueries(queryKey: readonly string[]): Promise<void>;
+  cancelQueries(filters: QueryFilters): Promise<void>;
+  getQueryData(queryKey: readonly unknown[]): TData | undefined;
+  setQueryData(queryKey: readonly unknown[], updater: (old: TData | undefined) => TData): void;
+  invalidateQueries(filters: QueryFilters): Promise<void>;
 }
 
 interface TodoItem {
@@ -15,6 +23,11 @@ interface MutationContext<TData> {
   previousData?: TData;
 }
 
+const TODOS_QUERY_KEY = ['todos'] as const;
+
+/**
+ * Coordinates TanStack Query v5 optimistic cache updates with snapshot capture and rollback.
+ */
 class OptimisticTodoMutationHandler {
   private readonly queryClient: QueryCacheClient<TodoItem[]>;
   private readonly remoteApi: { updateTodo: (todo: TodoItem) => Promise<TodoItem> };
@@ -27,32 +40,42 @@ class OptimisticTodoMutationHandler {
     this.remoteApi = remoteApi;
   }
 
+  /**
+   * Cancels in-flight todo queries, snapshots current cache data, and applies optimistic update.
+   */
   async onMutate(updatedTodo: TodoItem): Promise<MutationContext<TodoItem[]>> {
-    const queryKey = ['todos'] as const;
+    await this.queryClient.cancelQueries({ queryKey: TODOS_QUERY_KEY });
 
-    await this.queryClient.cancelQueries(queryKey);
+    const previousData = this.queryClient.getQueryData(TODOS_QUERY_KEY);
 
-    const previousData = this.queryClient.getQueryData(queryKey);
-
-    this.queryClient.setQueryData(queryKey, (old = []) =>
+    this.queryClient.setQueryData(TODOS_QUERY_KEY, (old = []) =>
       old.map((item) => (item.id === updatedTodo.id ? { ...item, ...updatedTodo } : item))
     );
 
     return { previousData };
   }
 
+  /**
+   * Restores the cached todo list snapshot when the remote mutation fails.
+   */
   onError(context?: MutationContext<TodoItem[]>): void {
-    const queryKey = ['todos'] as const;
-    const previous = context?.previousData;
-    if (previous) {
-      this.queryClient.setQueryData(queryKey, () => previous);
+    // Guard against undefined explicitly so valid empty/falsy snapshots still roll back.
+    if (context?.previousData !== undefined) {
+      const snapshot = context.previousData;
+      this.queryClient.setQueryData(TODOS_QUERY_KEY, () => snapshot);
     }
   }
 
+  /**
+   * Marks cached todos stale so authoritative server state reconciles after success or rollback.
+   */
   async onSettled(): Promise<void> {
-    await this.queryClient.invalidateQueries(['todos']);
+    await this.queryClient.invalidateQueries({ queryKey: TODOS_QUERY_KEY });
   }
 
+  /**
+   * Executes the full optimistic mutation lifecycle against the remote API.
+   */
   async execute(updatedTodo: TodoItem): Promise<TodoItem> {
     const context = await this.onMutate(updatedTodo);
     try {
@@ -67,5 +90,5 @@ class OptimisticTodoMutationHandler {
   }
 }
 
-export { OptimisticTodoMutationHandler };
-export type { QueryCacheClient, TodoItem, MutationContext };
+export { OptimisticTodoMutationHandler, TODOS_QUERY_KEY };
+export type { QueryFilters, QueryCacheClient, TodoItem, MutationContext };

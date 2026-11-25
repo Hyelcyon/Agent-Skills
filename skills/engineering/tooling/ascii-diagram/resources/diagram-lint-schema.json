@@ -25,7 +25,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["pure_ascii", "unicode_light", "unicode_rounded", "unicode_heavy", "unicode_double"]
+        "enum": ["pure_ascii", "unicode_light", "unicode_rounded", "unicode_double"]
       },
       "default": ["pure_ascii", "unicode_light", "unicode_rounded"]
     }

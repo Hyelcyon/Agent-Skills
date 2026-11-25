@@ -20,7 +20,7 @@ For every system resource (CPU, Memory, Storage I/O, Network), inspect:
 | **CPU** | `mpstat -P ALL 1` (`%usr`, `%sys`) | `uptime` (Load Avg), `vmstat 1` (`r` runqueue) | `dmesg -T \| grep -i "mce"` |
 | **Memory** | `free -h`, `vmstat 1` (`free`, `buff/cache`) | `vmstat 1` (`si`, `so` swap I/O), `/proc/pressure/memory` | `dmesg -T \| grep -i "oom-killer"` |
 | **Disk I/O** | `iostat -xz 1` (`%util`) | `iostat -xz 1` (`aqu-sz` queue length, `await`) | `dmesg -T \| grep -i "I/O error"` |
-| **Network** | `sar -n DEV 1` (`rxkB/s`, `txkB/s`) | `ss -s`, `netstat -s \| grep overflowed` | `ip -s link`, `ethtool -S <eth>` |
+| **Network** | `sar -n DEV 1` (`rxkB/s`, `txkB/s`) | `ss -s`, `nstat -az TcpExtListenOverflows` | `ip -s link`, `ethtool -S <eth>` |
 
 ---
 

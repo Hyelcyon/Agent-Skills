@@ -24,9 +24,16 @@ Production runbook and operational standard for authoring deterministic, distort
 
 When designing or repairing text-based diagrams, execute through these 5 sequential phases:
 
-```
-[Phase 1: Geometry Profiling] ──> [Phase 2: Width Shielding] ──> [Phase 3: Surgical Drawing] ──> [Phase 4: Automated Verification] ──> [Phase 5: Transparent Proof]
-  Canvas dimensions & family        Calculate CJK visual width      Map coordinates on grid        Execute verify_ascii_diagram.py      Deliver monospace block
+```text
+┌───────────────────┐   ┌───────────────────┐   ┌───────────────────┐
+│ 1. Geometry       │──►│ 2. Width Shield   │──►│ 3. Render & Draw  │
+│    & Char Family  │   │    UAX #11 + 0Tab │   │    render_box.py  │
+└───────────────────┘   └───────────────────┘   └─────────┬─────────┘
+                                                          │
+┌───────────────────┐   ┌───────────────────┐             │
+│ 5. Verified Block │◄──│ 4. Script Audit   │◄────────────┘
+│    Fenced `text`  │   │ verify_ascii_...  │
+└───────────────────┘   └───────────────────┘
 ```
 
 ### Phase 1: Geometry Profiling & Character Family Selection
@@ -45,10 +52,14 @@ When designing or repairing text-based diagrams, execute through these 5 sequent
    $$P_{\text{left}} = \lfloor \frac{W_{\text{inner}} - W_{\text{visual}}}{2} \rfloor, \quad P_{\text{right}} = W_{\text{inner}} - W_{\text{visual}} - P_{\text{left}}$$
 
 ### Phase 3: Deterministic Surgical Drawing
-1. Construct boxes on an explicit 2D coordinate grid. Ensure top border, label row, and bottom border have identical visual column widths.
-2. Align vertical connectors with exact center columns:
+1. Use the bundled box renderer for single/titled component boxes instead of eyeballing widths:
+   ```bash
+   python skills/engineering/tooling/ascii-diagram/scripts/render_box.py --title "Service" --lines "Line 1" "Line 2" --style rounded
+   ```
+2. For multi-box architectures, construct boxes on an explicit 2D coordinate grid. Ensure top border, label row, and bottom border have identical visual column widths.
+3. Align vertical connectors with exact center columns:
    $$X_{\text{connector}} = X_{\text{box\_start}} + \lfloor \frac{W_{\text{box}}}{2} \rfloor$$
-3. Use exact junction glyphs (`┬`, `┴`, `├`, `┤`, `┼`) where paths meet box edges.
+4. Use exact junction glyphs (`┬`, `┴`, `├`, `┤`, `┼`) where paths meet box edges.
 
 ### Phase 4: Automated Verification via Script
 Validate diagram buffers using the bundled offline validator:
@@ -80,17 +91,29 @@ Render the final diagram inside a fenced Markdown code block (` ```text `) with 
 
 ---
 
-## 3. Specialized Architecture References
+## 3. Prohibited Anti-Patterns & Fatal Mistakes
+
+- ❌ **Eyeballing 2D padding in prose**: Autoregressive prediction miscounts spaces, especially around CJK wide glyphs (`width = 2`). Always verify via `verify_ascii_diagram.py`.
+- ❌ **Using `len()` instead of UAX #11 display width**: Counting Hangul/ideograph code points as 1 column shifts right box borders outward.
+- ❌ **Injecting tab characters (`\t`)**: Variable tab stops destroy alignment across editors and Markdown renderers.
+- ❌ **Mixing character families**: Combining `+`/`|` with `┌`/`─`/`│`, or square `┌┐` with rounded `╰╯`, breaks visual geometry.
+- ❌ **Off-center vertical connectors**: Routing `│`/`▼` one column off `X_box_start + floor(W_box / 2)` warps pipelines.
+
+---
+
+## 4. Specialized Architecture References
 - 2D Grid Theory & Spatial Alignment: [references/ascii-grid-and-spatial-alignment.md](./references/ascii-grid-and-spatial-alignment.md)
 - CJK & Unicode East Asian Width Handling: [references/cjk-and-unicode-width-handling.md](./references/cjk-and-unicode-width-handling.md)
 - Box-Drawing Character Sets & Syntax: [references/box-drawing-character-sets-and-syntax.md](./references/box-drawing-character-sets-and-syntax.md)
 
-## 4. Reusable Resources
+## 5. Reusable Resources & Scripts
 - Box-Drawing Character Palette: [resources/box-drawing-palette.json](./resources/box-drawing-palette.json)
 - Pre-Measured Diagram Templates: [resources/diagram-templates.md](./resources/diagram-templates.md)
 - Diagram Lint Rules Schema: [resources/diagram-lint-schema.json](./resources/diagram-lint-schema.json)
+- Deterministic Box Renderer: [scripts/render_box.py](./scripts/render_box.py)
+- Diagram Alignment Validator: [scripts/verify_ascii_diagram.py](./scripts/verify_ascii_diagram.py)
 
-## 5. Verified Working Examples
+## 6. Verified Working Examples
 - Baseline Service Architecture: [examples/baseline_service_architecture.md](./examples/baseline_service_architecture.md)
 - Advanced Branching & Compensation Workflow: [examples/advanced_branching_workflow.md](./examples/advanced_branching_workflow.md)
 - Multilingual CJK & Korean Enterprise Architecture: [examples/cjk_mixed_multilingual_diagram.md](./examples/cjk_mixed_multilingual_diagram.md)

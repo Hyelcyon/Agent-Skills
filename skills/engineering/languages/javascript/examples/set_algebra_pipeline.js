@@ -6,12 +6,20 @@ export class AccessPolicyEngine {
   }
 
   resolveExpandedRoles(userDirectRoles) {
-    let resolved = new Set(userDirectRoles);
+    const resolved = new Set(userDirectRoles);
+    const queue = Array.from(resolved);
 
-    for (const role of userDirectRoles) {
+    while (queue.length > 0) {
+      const role = queue.shift();
       const inherited = this.#roleHierarchy.get(role);
-      if (inherited) {
-        resolved = resolved.union(inherited);
+      if (!inherited) {
+        continue;
+      }
+      for (const parentRole of inherited) {
+        if (!resolved.has(parentRole)) {
+          resolved.add(parentRole);
+          queue.push(parentRole);
+        }
       }
     }
 
@@ -23,13 +31,13 @@ export class AccessPolicyEngine {
     const requiredScope = new Set(requiredRoles);
 
     const missingPermissions = requiredScope.difference(userScope);
-    const superflousRoles = userScope.difference(requiredScope);
+    const superfluousRoles = userScope.difference(requiredScope);
 
     return {
       allowed: missingPermissions.size === 0,
       missingCount: missingPermissions.size,
       missingList: Array.from(missingPermissions),
-      unusedList: Array.from(superflousRoles)
+      unusedList: Array.from(superfluousRoles)
     };
   }
 }

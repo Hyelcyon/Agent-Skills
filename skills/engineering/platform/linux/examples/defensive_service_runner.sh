@@ -2,9 +2,11 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-readonly SCRIPT_NAME="$(basename "$0")"
-readonly LOCK_FILE="/tmp/${SCRIPT_NAME}.lock"
-readonly LOG_FILE="/tmp/${SCRIPT_NAME}.log"
+SCRIPT_NAME="$(basename -- "$0")"
+readonly SCRIPT_NAME
+LOCK_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+readonly LOCK_FILE="${LOCK_DIR}/${SCRIPT_NAME}.lock"
+readonly LOG_FILE="${LOCK_DIR}/${SCRIPT_NAME}.log"
 
 log() {
   local level="$1"
@@ -14,10 +16,8 @@ log() {
 
 cleanup() {
   local exit_code=$?
-  log "INFO" "Cleaning up runtime resources (exit code: ${exit_code})"
-  if [[ -f "${LOCK_FILE}" ]]; then
-    rm -f "${LOCK_FILE}"
-  fi
+  log "INFO" "Finalizing runtime execution (exit code: ${exit_code})"
+  # Keep the flock file intact so concurrent invocations lock the same inode
   exit "${exit_code}"
 }
 

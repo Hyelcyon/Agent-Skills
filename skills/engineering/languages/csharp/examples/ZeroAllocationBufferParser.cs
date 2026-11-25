@@ -4,7 +4,7 @@ using System;
 using System.Buffers;
 using System.IO;
 
-public sealed class ZeroAllocationBufferParser
+public static class ZeroAllocationBufferParser
 {
     public static bool TryParseKeyValue(ReadOnlySpan<char> source, out ReadOnlySpan<char> key, out ReadOnlySpan<char> value)
     {
@@ -33,13 +33,16 @@ public sealed class ZeroAllocationBufferParser
 
     public static byte[] ProcessStreamPayload(Stream stream, int expectedLength)
     {
+        ArgumentNullException.ThrowIfNull(stream);
+        ArgumentOutOfRangeException.ThrowIfNegative(expectedLength);
+
         byte[] poolBuffer = ArrayPool<byte>.Shared.Rent(expectedLength);
         try
         {
             int totalRead = 0;
             while (totalRead < expectedLength)
             {
-                int read = stream.Read(poolBuffer, totalRead, expectedLength - totalRead);
+                int read = stream.Read(poolBuffer.AsSpan(totalRead, expectedLength - totalRead));
                 if (read == 0)
                 {
                     break;

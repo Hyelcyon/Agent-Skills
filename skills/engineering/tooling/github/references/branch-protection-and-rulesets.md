@@ -45,13 +45,35 @@ Rulesets can be managed as code via GitHub REST or GraphQL APIs to ensure consis
 ```bash
 gh api --method POST /repos/{owner}/{repo}/rulesets \
   -H "Accept: application/vnd.github+json" \
-  -f name="production-protection" \
-  -f target="branch" \
-  -f enforcement="active" \
-  -F "conditions[ref_name][include][]=refs/heads/main" \
-  -F "rules[][type]=pull_request" \
-  -F "rules[][type]=required_linear_history" \
-  -F "rules[][type]=non_fast_forward"
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  --input - <<'EOF'
+{
+  "name": "production-protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["~DEFAULT_BRANCH"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews_on_push": true,
+        "require_code_owner_review": true,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": true
+      }
+    },
+    { "type": "required_linear_history" },
+    { "type": "non_fast_forward" },
+    { "type": "deletion" }
+  ]
+}
+EOF
 ```
 
 Managing rulesets via API allows organizations to audit, version-control, and roll out compliance policies continuously.

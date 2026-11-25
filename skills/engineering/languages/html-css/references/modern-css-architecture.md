@@ -9,6 +9,7 @@ Detailed reference for CSS design tokens, BEM-flat architecture, subgrid, and el
 ```css
 :root {
   --color-primary-500: oklch(0.6 0.2 250);
+  --color-primary-600: oklch(0.48 0.22 250);
   --color-neutral-100: oklch(0.98 0.01 250);
   --color-neutral-900: oklch(0.15 0.02 250);
 
@@ -42,7 +43,7 @@ Control priority cleanly without using `!important`:
   .btn {
     padding: var(--space-xs) var(--space-md);
     border-radius: var(--radius-md);
-    background: var(--color-primary-500);
+    background: var(--color-primary-600);
     color: white;
   }
 }
@@ -55,7 +56,7 @@ Control priority cleanly without using `!important`:
     padding: 0;
     margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
     white-space: nowrap;
     border: 0;
   }

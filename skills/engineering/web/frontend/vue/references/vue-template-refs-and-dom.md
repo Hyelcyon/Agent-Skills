@@ -37,12 +37,16 @@ When binding refs inside `v-for`, pass an inline function to manage collection r
 
 ```vue
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onBeforeUpdate, ref, type ComponentPublicInstance } from 'vue';
 
-const itemElements = ref<HTMLElement[]>([]);
+const itemElements = ref<Element[]>([]);
 
-const setItemRef = (el: any) => {
-  if (el) {
+onBeforeUpdate(() => {
+  itemElements.value = [];
+});
+
+const setItemRef = (el: Element | ComponentPublicInstance | null) => {
+  if (el instanceof Element) {
     itemElements.value.push(el);
   }
 };

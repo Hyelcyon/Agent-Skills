@@ -18,7 +18,7 @@ public class StructuredTaskPipeline {
             creditTask = executor.submit(() -> queryCreditScore(userId));
         }
 
-        return new CombinedAccountState(profileTask.resultNow(), creditTask.resultNow());
+        return new CombinedAccountState(profileTask.get(), creditTask.get());
     }
 
     private UserProfile queryUserProfile(String userId) throws InterruptedException {

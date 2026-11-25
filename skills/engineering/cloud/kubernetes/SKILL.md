@@ -41,6 +41,7 @@ This skill establishes the production standard for container orchestration on Ku
 | Running as UID 0 (`root`) | Container breakout grants host root access | Enforce `runAsNonRoot: true` with non-privileged UID (e.g. `10001`) |
 | Missing `readOnlyRootFilesystem` | Malware persistence and arbitrary binary execution | Set `readOnlyRootFilesystem: true` and mount `emptyDir` on `/tmp` |
 | Default `default` namespace usage | Blast radius contamination and RBAC leakage | Deploy workloads into dedicated, purpose-bound namespaces |
+| Single-replica PDB `minAvailable: 1` | Permanently blocks `kubectl drain` during node upgrades | Only set `minAvailable >= 1` when `replicas >= 2` (or use `maxUnavailable`) |
 
 ---
 
@@ -114,7 +115,7 @@ lifecycle:
       command: ["/bin/sh", "-c", "sleep 5"]
 terminationGracePeriodSeconds: 30
 ```
-Pair deployments with an explicit `PodDisruptionBudget`:
+Pair deployments (>= 2 replicas) with an explicit `PodDisruptionBudget` (never set `minAvailable: 1` on single-replica deployments, which permanently blocks node `kubectl drain`):
 ```yaml
 apiVersion: policy/v1
 kind: PodDisruptionBudget
@@ -128,7 +129,7 @@ spec:
 ```
 
 ### Phase 4: Static Validation & Dry-Run
-Run schema and deprecation checks before applying:
+Run schema and deprecation checks before applying (`--dry-run=server` requires cluster connectivity):
 ```bash
 # Client-side static dry-run
 kubectl apply --dry-run=client -f ./manifests/
@@ -138,17 +139,10 @@ kubectl apply --dry-run=server -f ./manifests/
 ```
 
 ### Phase 5: Rollout & Health Verification
-Observe rollout progression deterministically:
+Observe rollout progression deterministically with a cross-platform single-line query:
 ```bash
-# Monitor rollout state
 kubectl rollout status deployment/order-service --timeout=120s
-
-# Verify Pod QoS class, endpoints, and restart counts
-kubectl get pods -l app.kubernetes.io/name=order-service -o custom-columns=\
-NAME:.metadata.name,\
-READY:.status.containerStatuses[0].ready,\
-RESTARTS:.status.containerStatuses[0].restartCount,\
-QOS:.status.qosClass
+kubectl get pods -l app.kubernetes.io/name=order-service -o custom-columns="NAME:.metadata.name,READY:.status.containerStatuses[0].ready,RESTARTS:.status.containerStatuses[0].restartCount,QOS:.status.qosClass"
 ```
 
 ---

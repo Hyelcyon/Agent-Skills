@@ -1,11 +1,15 @@
+from decimal import Decimal
 from typing import Literal, TypeIs
+
 from pydantic import BaseModel, ConfigDict, Field
+
 
 class OrderPlaced(BaseModel):
     model_config = ConfigDict(strict=True, frozen=True, extra="forbid")
     event_type: Literal["order_placed"]
     order_id: str = Field(min_length=1)
-    amount: float = Field(gt=0.0)
+    amount: Decimal = Field(gt=Decimal(0), max_digits=12, decimal_places=2)
+
 
 class OrderCancelled(BaseModel):
     model_config = ConfigDict(strict=True, frozen=True, extra="forbid")
@@ -13,10 +17,13 @@ class OrderCancelled(BaseModel):
     order_id: str
     reason: str
 
+
 OrderEvent = OrderPlaced | OrderCancelled
+
 
 def is_order_placed(event: OrderEvent) -> TypeIs[OrderPlaced]:
     return event.event_type == "order_placed"
+
 
 def process_order_event(event: OrderEvent) -> str:
     match event:

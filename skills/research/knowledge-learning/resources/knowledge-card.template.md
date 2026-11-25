@@ -1,7 +1,8 @@
 # Knowledge Card: [Title Describing the Invariant]
 
 - **Card ID**: KC-[000]
-- **Category**: [environment | architecture | user_preference | workaround | tooling]
+- **Category**: [environment | architecture | user_preference | workaround | tooling | test_harness]
+- **Weight**: [critical | high | medium | low]
 - **Scope**: [e.g., packages/core/*, tests/**/*.ts, global]
 - **Created**: [YYYY-MM-DD]
 - **Last Verified**: [YYYY-MM-DD]

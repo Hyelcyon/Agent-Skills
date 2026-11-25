@@ -6,10 +6,11 @@ Technical guide for authoring backend REST/Webhook endpoints via Route Handlers 
 
 ## 1. Route Handlers (`route.ts`)
 
-Route Handlers define custom request handlers for public APIs, webhooks, and third-party integrations inside the `app/` directory:
+Route Handlers define custom HTTP handlers inside `app/`. In Next.js 15, `GET` Route Handlers are uncached by default (opt in with `export const dynamic = 'force-static'`) and dynamic `params` are Promises (`await params`):
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyBearerToken } from '@/lib/server-auth';
 
 interface CreateOrderPayload {
   itemId: string;
@@ -22,18 +23,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Missing authorization' }, { status: 401 });
   }
 
-  let body: CreateOrderPayload;
+  const session = await verifyBearerToken(authHeader.slice(7));
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
+
+  let body: Partial<CreateOrderPayload>;
   try {
-    body = (await request.json()) as CreateOrderPayload;
+    body = (await request.json()) as Partial<CreateOrderPayload>;
   } catch {
     return NextResponse.json({ error: 'Malformed JSON payload' }, { status: 400 });
   }
 
-  if (!body.itemId || body.quantity <= 0) {
+  if (
+    typeof body.itemId !== 'string' ||
+    !/^[a-zA-Z0-9_-]{1,64}$/.test(body.itemId) ||
+    typeof body.quantity !== 'number' ||
+    !Number.isInteger(body.quantity) ||
+    body.quantity < 1 ||
+    body.quantity > 100
+  ) {
     return NextResponse.json({ error: 'Invalid order parameters' }, { status: 422 });
   }
 
-  const orderId = `ord_${Date.now()}`;
+  const orderId = `ord_${crypto.randomUUID()}`;
   return NextResponse.json({ orderId, status: 'confirmed' }, { status: 201 });
 }
 ```
@@ -42,7 +55,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 ## 2. Runtime Selection: Node.js vs Edge
 
-By default, Route Handlers run in the Node.js runtime. For ultra-low-latency edge execution:
+By default, Route Handlers run in the Node.js runtime. For edge execution:
 
 ```typescript
 export const runtime = 'edge';
@@ -54,7 +67,7 @@ When targeting `runtime = 'edge'`, Node.js standard modules (`node:fs`, `node:ch
 
 ## 3. Global Request Middleware: `middleware.ts`
 
-Middleware executes before a request is completed, enabling authentication verification, route protection, and header manipulation:
+Middleware executes before a route matches, enabling optimistic session redirects, A/B routing, and correlation headers. **Security invariant:** Middleware is an optimistic routing guard only—never rely on Middleware alone for authorization; always verify sessions and tenant ownership inside Server Components, Server Actions, and Route Handlers:
 
 ```typescript
 import { NextResponse, type NextRequest } from 'next/server';
@@ -64,18 +77,16 @@ export function middleware(request: NextRequest) {
 
   if (!sessionToken && request.nextUrl.pathname.startsWith('/dashboard')) {
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
+    const { pathname } = request.nextUrl;
+    if (pathname.startsWith('/') && !pathname.startsWith('//')) {
+      loginUrl.searchParams.set('redirect', pathname);
+    }
     return NextResponse.redirect(loginUrl);
   }
 
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-forwarded-origin', request.nextUrl.origin);
-
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders
-    }
-  });
+  const response = NextResponse.next();
+  response.headers.set('x-request-id', crypto.randomUUID());
+  return response;
 }
 
 export const config = {

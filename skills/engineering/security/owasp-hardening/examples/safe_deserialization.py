@@ -1,7 +1,8 @@
-import json
 from typing import Any
+
 import yaml
 from pydantic import BaseModel, Field, ValidationError
+
 
 class UserProfilePayload(BaseModel):
     user_id: str = Field(min_length=1, max_length=64)

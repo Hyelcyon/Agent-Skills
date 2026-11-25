@@ -4,15 +4,15 @@ groups:
       - alert: ApiHighErrorRateBurnRate1h
         expr: |
           (
-            sum(rate(http_requests_total{status=~"5.."}[1h]))
+            sum by (service) (rate(http_requests_total{status=~"5.."}[1h]))
             /
-            sum(rate(http_requests_total[1h]))
+            clamp_min(sum by (service) (rate(http_requests_total[1h])), 1e-9)
           ) > (14.4 * (1 - 0.999))
           and
           (
-            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            sum by (service) (rate(http_requests_total{status=~"5.."}[5m]))
             /
-            sum(rate(http_requests_total[5m]))
+            clamp_min(sum by (service) (rate(http_requests_total[5m])), 1e-9)
           ) > (14.4 * (1 - 0.999))
         for: 2m
         labels:

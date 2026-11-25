@@ -64,7 +64,7 @@ $$\Delta \times \beta \times (-\ln(\text{random}())) > (\text{expiry} - \text{cu
 
 - $\Delta$: Time taken to compute the value from the database (in seconds).
 - $\beta$: Constant aggressiveness parameter ($\beta > 0$, typically $1.0$).
-- $\text{random}()$: Uniform random variable $U(0, 1]$.
-- $\text{expiry} - \text{currentTime}$: Remaining TTL in seconds.
+- $\text{random}()$: Uniform random variable bounded strictly away from zero, $(0, 1]$ (clamp `max(random.random(), 1e-9)` so `ln(0)` never occurs).
+- $\text{expiry} - \text{currentTime}$: Remaining TTL in seconds (store the jittered expiration timestamp matching `max(1, ttl + jitter)` passed to Redis `EX`).
 
-As the remaining TTL approaches zero, $-\ln(\text{random}())$ increases the probability that a worker will trigger an early refresh. Exactly one or two background workers recompute the value, updating the cache seamlessly before it ever reaches 0 TTL.
+As the remaining TTL approaches zero, $-\ln(\text{random}())$ increases the probability that a worker will trigger an early refresh. One or a few background/reader workers recompute the value and refresh the cache before it reaches 0 TTL. When running multi-key cache invalidations or `MGET` batches on Redis Cluster, co-locate related keys on the same hash slot with `{hash_tag}` prefixes (e.g., `prod:tenant:{t_101}:profile`).

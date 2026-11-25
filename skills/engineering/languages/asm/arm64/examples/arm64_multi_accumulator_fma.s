@@ -1,5 +1,6 @@
 .global neon_matrix_vector_fma4x
 .type neon_matrix_vector_fma4x, %function
+.text
 
 neon_matrix_vector_fma4x:
     movi v0.4s, #0
@@ -29,9 +30,13 @@ neon_matrix_vector_fma4x:
     fadd v2.4s, v2.4s, v3.4s
     fadd v0.4s, v0.4s, v2.4s
 
+    // Collapse all 4 vector lanes to s0 BEFORE scalar tail runs, because scalar writes zero upper bits [127:32]
+    faddp v0.4s, v0.4s, v0.4s
+    faddp v0.4s, v0.4s, v0.4s
+
 .L_remainder:
     ands x2, x2, #15
-    cbz x2, .L_reduce_scalar
+    b.eq .L_done
 
 .L_tail_loop:
     ldr s4, [x0], #4
@@ -40,9 +45,7 @@ neon_matrix_vector_fma4x:
     subs x2, x2, #1
     b.ne .L_tail_loop
 
-.L_reduce_scalar:
-    faddp v0.4s, v0.4s, v0.4s
-    faddp v0.4s, v0.4s, v0.4s
+.L_done:
     ret
 
 .size neon_matrix_vector_fma4x, .-neon_matrix_vector_fma4x

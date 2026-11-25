@@ -36,20 +36,21 @@ Inspect git diffs between target branch and baseline. Check for modified public 
 
 ### Phase 2: Semantic Version Evaluation
 Apply strict SemVer guardrails:
-- **Major**: Public breaking changes or removed endpoints.
-- **Minor**: Backward-compatible new capabilities or optional arguments.
-- **Patch**: Internal fixes, refactoring, or performance improvements.
-- **ZeroVer**: Projects on `0.y.z` increment minor for breaking changes until `1.0.0`.
+- **Major (`X.0.0`)**: Public breaking changes, removed endpoints, or dropped runtime compatibility.
+- **Minor (`x.Y.0`)**: Backward-compatible new capabilities or optional arguments.
+- **Patch (`x.y.Z`)**: Internal bug fixes, refactoring, or performance improvements.
+- **ZeroVer (`0.y.z`)**: Pre-1.0 projects increment minor (`0.Y.0`) for breaking changes until `1.0.0` stabilizes public contracts.
+- **Pre-releases (`1.2.0-rc.1`)**: Use hyphenated pre-release identifiers for release candidates prior to final tagging.
 
 ### Phase 3: Repository Governance Setup
-Enforce explicit accountability rules in `.github/CODEOWNERS` and configure multi-type PR templates (`pull_request_template.md`).
+Enforce explicit accountability rules in `.github/CODEOWNERS`, configure PR templates (`.github/pull_request_template.md`), and pin all third-party GitHub Actions in `.github/workflows/` to immutable 40-character commit SHAs with version comments (`uses: actions/checkout@<sha> # v4.2.2`).
 
 ### Phase 4: Release & Changelog Generation
-Tag releases with annotated signatures and generate releases using `gh`:
+Create annotated tags and publish releases via `gh` only when explicitly authorized by the user (use `--draft` to stage notes for review before publishing):
 ```bash
 git tag -a v1.2.0 -m "Release v1.2.0"
 git push origin v1.2.0
-gh release create v1.2.0 --generate-notes
+gh release create v1.2.0 --verify-tag --generate-notes --draft
 ```
 
 ### Phase 5: Verification & Protection Proof
@@ -57,13 +58,15 @@ Verify branch rulesets mandate status checks, linear history, and required pull 
 
 ---
 
-## Prohibited Anti-Patterns
+## Prohibited Anti-Patterns & Fatal Mistakes
 
-- ❌ Inflating version numbers (e.g. Bumping Major for non-breaking internal refactors).
+- ❌ Pushing tags, creating public repositories, merging PRs, or publishing GitHub releases without explicit user authorization.
+- ❌ Referencing mutable GitHub Actions tags (`@v4`, `@main`) instead of pinned 40-character commit SHAs.
+- ❌ Inflating version numbers (e.g. bumping Major for non-breaking internal refactors).
 - ❌ Releasing lightweight Git tags instead of annotated tags (`git tag -a`).
-- ❌ Leaving repository root without CODEOWNERS or default reviewers.
+- ❌ Leaving repository root without `CODEOWNERS` or default reviewers.
 - ❌ Bypassing required status checks or merge queues on production branches.
-- ❌ Publishing releases without changelogs or release notes.
+- ❌ Publishing releases without verified release notes or changelogs.
 
 ---
 

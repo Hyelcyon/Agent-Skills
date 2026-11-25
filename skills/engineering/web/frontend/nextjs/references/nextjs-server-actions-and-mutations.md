@@ -22,7 +22,7 @@ Declare actions in dedicated server files marked with `'use server'`:
 
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
+import { verifySession } from '@/lib/server-auth';
 
 interface ActionResponse {
   success: boolean;
@@ -34,7 +34,8 @@ export async function updateUsernameAction(
   formData: FormData
 ): Promise<ActionResponse> {
   const cookieStore = await cookies();
-  const session = cookieStore.get('session_id');
+  const sessionCookie = cookieStore.get('session_id')?.value;
+  const session = sessionCookie ? await verifySession(sessionCookie) : null;
 
   if (!session) {
     return { success: false, error: 'Unauthorized mutation' };
@@ -45,14 +46,18 @@ export async function updateUsernameAction(
     return { success: false, error: 'Username must be at least 3 characters' };
   }
 
-  await fetch('https://api.enterprise.com/user/profile', {
+  const response = await fetch('https://api.enterprise.com/user/profile', {
     method: 'PATCH',
     headers: {
-      Authorization: `Bearer ${session.value}`,
+      Authorization: `Bearer ${session.accessToken}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ username: rawUsername.trim() })
+    body: JSON.stringify({ userId: session.userId, username: rawUsername.trim() })
   });
+
+  if (!response.ok) {
+    return { success: false, error: 'Failed to update username' };
+  }
 
   revalidatePath('/profile');
   return { success: true };
@@ -82,14 +87,14 @@ function SubmitButton() {
 }
 
 export function UsernameEditor() {
-  const [state, formAction] = useActionState(updateUsernameAction, { success: false });
+  const [state, formAction, isPending] = useActionState(updateUsernameAction, { success: false });
 
   return (
-    <form action={formAction}>
+    <form action={formAction} aria-busy={isPending}>
       <input name="username" type="text" placeholder="New username" required />
       <SubmitButton />
-      {state.error && <p class="error">{state.error}</p>}
-      {state.success && <p class="success">Username successfully updated</p>}
+      {state.error && <p className="error">{state.error}</p>}
+      {state.success && <p className="success">Username successfully updated</p>}
     </form>
   );
 }

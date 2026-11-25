@@ -44,16 +44,19 @@ type RecordMap[K: str, V] = dict[K, list[V]]
 Python 3.13 introduces `TypeIs` to replace `TypeGuard`. Unlike `TypeGuard` which only narrows in the positive branch, `TypeIs` safely narrows both the positive `if` branch and the negative `else` branch.
 
 ```python
+from collections.abc import Sequence
 from typing import TypeIs
 
-def is_integer_list(items: list[object]) -> TypeIs[list[int]]:
-    return all(isinstance(x, int) for x in items)
 
-def process_elements(elements: list[str] | list[int]) -> int:
-    if is_integer_list(elements):
+def is_integer_sequence(items: Sequence[object]) -> TypeIs[Sequence[int]]:
+    # Exclude bool because isinstance(True, int) is True in Python.
+    return all(isinstance(x, int) and not isinstance(x, bool) for x in items)
+
+
+def process_elements(elements: Sequence[str | int]) -> int:
+    if is_integer_sequence(elements):
         return sum(elements)
-    else:
-        return len(elements)
+    return len(elements)
 ```
 
 In the negative branch, the static analyzer knows `elements` cannot be `list[int]`, narrowing it down to `list[str]`.

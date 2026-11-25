@@ -36,30 +36,35 @@ When developing or refactoring React components, the agent must execute these 5 
    - Uses browser-only APIs (`window`, `localStorage`, `IntersectionObserver`).
 2. Push `'use client'` down to the leaf interactive elements; wrap client leaves inside Server Component shells.
 
-### Phase 2: Server-First Data Placement
-1. Fetch data directly in Server Components using asynchronous async/await components.
-2. Eliminate client-side `useEffect` data fetching waterfalls.
+### Phase 2: Server-First Data Placement & Waterfall Elimination
+1. Fetch independent server resources in parallel with `Promise.all()` or stream slower slices inside separate `<Suspense>` boundaries (`async-parallel`); never serialize unrelated `await`s.
+2. Eliminate client-side `useEffect` data fetching waterfalls, and split heavy interactive widgets (`Chart`, `Editor`) via `React.lazy()` rather than eager barrel imports.
 
-### Phase 3: Action & Mutation Standard
+### Phase 3: Action, Composition & Mutation Standard
 1. Use native form actions enhanced by `useActionState`:
    ```tsx
    const [state, formAction, isPending] = useActionState(serverAction, initialState);
    ```
-2. Wrap rapid UI updates in `useOptimistic` to display anticipated state before network completion.
+2. Wrap rapid UI updates in `useOptimistic` and non-urgent expensive renders in `startTransition`; use functional updaters (`setItems((prev) => ...)`) to avoid stale closures.
+3. Prefer composable **Compound Components** sharing Context (`<Panel><Panel.Header /><Panel.Body /></Panel>`) over monolithic boolean-prop explosion (`isCompact`, `hasFooter`, `hideTitle`).
 
 ### Phase 4: Compiler-Assisted Simplicity
 1. Do not defensively wrap functions in `useCallback` or values in `useMemo` unless profiling proves necessary.
-2. Pass `ref` directly as a prop; do not wrap components in `forwardRef`.
+2. Pass `ref` directly as a prop in React 19 rather than wrapping components in `forwardRef`.
 
-### Phase 5: Render Verification
-Verify that:
-- No hydration mismatch warnings occur between server HTML and client hydration.
-- The client bundle size excludes heavy server dependencies (e.g. database clients, markdown parsers).
+### Phase 5: Render & Build Verification
+Verify compilation, types, client bundle split, and zero hydration mismatches:
+```bash
+npx tsc --noEmit && npm run build && npm test
+```
+Check that server-only secrets/parsers are excluded from client bundles and SSR/CSR render outputs match cleanly.
 
 ---
 
 ## 2. Critical Anti-Patterns to Avoid
-- ❌ Using `useEffect` to fetch data on component mount (creates layout shifts and waterfalls).
+- ❌ Using `useEffect` to fetch data on component mount or chaining sequential `await`s for independent server fetches.
+- ❌ Importing massive barrel files (`import { X } from 'ui-kit'`) when direct/lazy imports prevent bundle bloat.
+- ❌ Building monolithic boolean-prop components (`isDense`, `hasDivider`, `noPadding`) instead of clean Compound Components.
 - ❌ Placing `'use client'` at the root or layout level (destroys Server Component benefits).
 - ❌ Manually wrapping all callbacks in `useCallback` under React 19.
 - ❌ Wrapping components in `forwardRef` (deprecated in React 19; pass `ref` directly).

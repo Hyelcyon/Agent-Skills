@@ -1,7 +1,8 @@
 CC = gcc
 AS = as
 NASM = nasm
-CFLAGS = -Wall -Wextra -Werror -pedantic -O3 -fPIE -z noexecstack
+CFLAGS = -Wall -Wextra -Werror -pedantic -O3 -fPIE
+LDFLAGS = -Wl,-z,noexecstack
 ASFLAGS = --fatal-warnings -O2
 NASMFLAGS = -f elf64 -Werror -Ox
 
@@ -20,7 +21,7 @@ all: $(TARGET)
 
 $(TARGET): $(ALL_OBJS)
 	@mkdir -p bin
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

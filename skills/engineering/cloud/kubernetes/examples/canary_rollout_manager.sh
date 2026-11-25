@@ -18,7 +18,7 @@ INITIAL_REVISION=$(kubectl rollout history "deployment/$DEPLOYMENT" -n "$NAMESPA
 echo "Baseline Deployment Revision: $INITIAL_REVISION"
 
 echo "Applying image update..."
-kubectl set image "deployment/$DEPLOYMENT" "order-api=$TARGET_IMAGE" -n "$NAMESPACE" --record=false
+kubectl set image "deployment/$DEPLOYMENT" "order-api=$TARGET_IMAGE" -n "$NAMESPACE"
 
 echo "Monitoring rollout progress..."
 if ! kubectl rollout status "deployment/$DEPLOYMENT" -n "$NAMESPACE" --timeout="${TIMEOUT_SECONDS}s"; then
@@ -33,9 +33,10 @@ fi
 echo "Verifying endpoint health and zero restart status..."
 FAILED_PODS=0
 while read -r pod_name restarts ready; do
-  if [[ "$ready" != "True" || "$restarts" -gt 0 ]]; then
-    echo "Warning: Pod $pod_name has $restarts restarts or ready=$ready" >&2
-    ((FAILED_PODS++))
+  if [[ "$ready" != "True" || "${restarts:-0}" -gt 0 ]]; then
+    echo "Warning: Pod $pod_name has ${restarts:-0} restarts or ready=${ready:-Unknown}" >&2
+    # Use arithmetic expansion rather than ((FAILED_PODS++)) which exits 1 under set -e when zero
+    FAILED_PODS=$((FAILED_PODS + 1))
   fi
 done < <(kubectl get pods -n "$NAMESPACE" -l "app.kubernetes.io/name=$DEPLOYMENT" \
   -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.status.containerStatuses[0].restartCount}{" "}{.status.containerStatuses[0].ready}{"\n"}{end}')

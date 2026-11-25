@@ -19,13 +19,12 @@ In Angular 19, `standalone: true` is the implicit framework default. Components 
 
 ```typescript
 import { Component, ChangeDetectionStrategy, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { UserAvatarComponent } from '../ui/user-avatar.component';
 import { CurrencyFormatPipe } from '../pipes/currency-format.pipe';
 
 @Component({
   selector: 'app-account-card',
-  imports: [CommonModule, UserAvatarComponent, CurrencyFormatPipe],
+  imports: [UserAvatarComponent, CurrencyFormatPipe],
   template: `
     <div class="card">
       <app-user-avatar [userId]="userId()" />
@@ -44,15 +43,14 @@ export class AccountCardComponent {
 
 ## 3. Standalone Directives and Pipes
 
-Directives and pipes follow the exact same standalone paradigm:
+Directives and pipes follow the exact same standalone paradigm (omit redundant `standalone: true` in Angular 19+):
 
 ### Standalone Directive
 ```typescript
 import { Directive, ElementRef, inject, OnInit } from '@angular/core';
 
 @Directive({
-  selector: '[appAutoFocus]',
-  standalone: true
+  selector: '[appAutoFocus]'
 })
 export class AutoFocusDirective implements OnInit {
   private readonly elementRef = inject(ElementRef);
@@ -68,15 +66,15 @@ export class AutoFocusDirective implements OnInit {
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'fileSize',
-  standalone: true
+  name: 'fileSize'
 })
 export class FileSizePipe implements PipeTransform {
   transform(bytes: number): string {
-    if (bytes === 0) return '0 B';
+    if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.min(sizes.length - 1, Math.floor(Math.log(bytes) / Math.log(k)));
     return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
   }
 }

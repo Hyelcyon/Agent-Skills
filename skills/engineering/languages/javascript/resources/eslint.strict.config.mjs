@@ -5,7 +5,12 @@ export default [
   {
     languageOptions: {
       ecmaVersion: 'latest',
-      sourceType: 'module'
+      sourceType: 'module',
+      globals: {
+        Temporal: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly'
+      }
     },
     rules: {
       'no-var': 'error',

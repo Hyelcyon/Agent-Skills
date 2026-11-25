@@ -1,7 +1,9 @@
-.global neon_transpose_8x8_f32
-.type neon_transpose_8x8_f32, %function
+.global neon_transpose_4x4_f32
+.type neon_transpose_4x4_f32, %function
+.text
 
-neon_transpose_8x8_f32:
+// Transposes a packed 4x4 matrix of 32-bit floats in place from [x0] to [x1].
+neon_transpose_4x4_f32:
     ld1 {v0.4s, v1.4s}, [x0]
     add x2, x0, #32
     ld1 {v2.4s, v3.4s}, [x2]
@@ -21,5 +23,5 @@ neon_transpose_8x8_f32:
     st1 {v2.4s, v3.4s}, [x3]
     ret
 
-.size neon_transpose_8x8_f32, .-neon_transpose_8x8_f32
+.size neon_transpose_4x4_f32, .-neon_transpose_4x4_f32
 .section .note.GNU-stack,"",%progbits

@@ -1,4 +1,10 @@
-set -e
+#!/bin/sh
+set -eu
+
+if ! command -v curl >/dev/null 2>&1; then
+    printf 'Error: curl is required for container healthcheck.\n' >&2
+    exit 1
+fi
 
 HOST="127.0.0.1"
 PORT="${PORT:-3000}"
@@ -7,10 +13,9 @@ TIMEOUT=3
 MAX_RETRIES=3
 
 attempt=1
-until [ "$attempt" -gt "$MAX_RETRIES" ]; do
-    response=$(curl --fail --silent --show-error --max-time "$TIMEOUT" "http://${HOST}:${PORT}${ENDPOINT}" 2>&1)
-    status=$?
-    if [ $status -eq 0 ]; then
+while [ "$attempt" -le "$MAX_RETRIES" ]; do
+    # Evaluate curl inside `if` so `set -e` does not abort before exhausting retries
+    if curl --fail --silent --show-error --max-time "$TIMEOUT" "http://${HOST}:${PORT}${ENDPOINT}" >/dev/null; then
         exit 0
     fi
     attempt=$((attempt + 1))

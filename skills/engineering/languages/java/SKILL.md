@@ -35,7 +35,7 @@ Phase 5: Quality Gate & Verification (Spotless, Checkstyle, JUnit 5)
 Verify toolchain targets Java 21 LTS or newer. Enable strict compiler warnings with `-Werror` and `-Xlint:all`.
 
 ### Phase 2: Concurrency Architecture Selection
-Adopt the thread-per-task model for I/O-bound workloads using `Executors.newVirtualThreadPerTaskExecutor()`. Never pool virtual threads. Avoid pinning carrier threads by replacing `synchronized` blocks around blocking calls with `ReentrantLock`.
+Adopt the thread-per-task model for I/O-bound workloads using `Executors.newVirtualThreadPerTaskExecutor()`. Never pool virtual threads. On JDK 21–23, avoid carrier thread pinning by replacing `synchronized` blocks around blocking I/O with `ReentrantLock` (JDK 24+ / Java 25 LTS eliminates monitor pinning via JEP 491, though native/JNI frames still pin).
 
 ### Phase 3: Domain Modeling with Records & Pattern Matching
 Model immutable data as records and state machines as sealed hierarchies:
@@ -53,15 +53,16 @@ return switch (status) {
 ```
 
 ### Phase 4: Structured Concurrency & Scoped Values
-Coordinate subtasks with `StructuredTaskScope` (Preview feature: requires `--enable-preview`) to eliminate thread leaks and propagate cancellation:
+Coordinate subtasks with Java 25 JEP 505 `StructuredTaskScope.open()` (Preview feature requiring `--enable-preview` in JDK 25; replaces deprecated JDK 21-24 `new StructuredTaskScope.ShutdownOnFailure()`) to eliminate thread leaks and propagate cancellation:
 ```java
-try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+try (var scope = StructuredTaskScope.open(StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow())) {
     StructuredTaskScope.Subtask<User> user = scope.fork(() -> fetchUser(id));
     StructuredTaskScope.Subtask<Account> account = scope.fork(() -> fetchAccount(id));
-    scope.join().throwIfFailed();
+    scope.join();
     return new Profile(user.get(), account.get());
 }
 ```
+Note that `scope.join()` throws unchecked `StructuredTaskScope.FailedException` wrapping the subtask root cause on failure.
 Bind thread-safe, immutable context with `ScopedValue` instead of mutable `ThreadLocal`.
 
 ### Phase 5: Quality Gate & Verification
@@ -76,7 +77,7 @@ mvn clean verify
 ## Prohibited Anti-Patterns
 
 - ❌ Pooling virtual threads with thread pools (e.g. `Executors.newFixedThreadPool` with virtual threads).
-- ❌ Using `synchronized` blocks around blocking I/O calls (causes carrier thread pinning).
+- ❌ Using `synchronized` blocks around blocking I/O calls on JDK 21–23 (causes carrier thread pinning; use `ReentrantLock` there, though JDK 24+/25 JEP 491 resolves monitor pinning).
 - ❌ Using mutable `ThreadLocal` for request context when `ScopedValue` is available.
 - ❌ Orphaned asynchronous tasks via unbounded `CompletableFuture.runAsync()`.
 - ❌ Fallback `default` branches in sealed class switch statements that defeat compiler exhaustiveness checks.

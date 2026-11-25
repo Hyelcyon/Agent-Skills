@@ -28,7 +28,7 @@ Storing access tokens or refresh tokens in browser `localStorage` or `sessionSto
 ### The BFF Solution
 1. The browser client communicates only with a lightweight backend proxy (the BFF).
 2. The BFF exchanges the authorization code for tokens and retains the access and refresh tokens in server-side storage (Redis/encrypted session store).
-3. The BFF issues an encrypted, `HttpOnly`, `Secure`, `SameSite=Strict` session cookie to the browser.
+3. The BFF issues an encrypted, `HttpOnly`, `Secure` session cookie (`SameSite=Lax` when OAuth IdP top-level redirects must reach `/callback`; `SameSite=Strict` for state-changing APIs and privilege-step cookies).
 4. When the browser makes API requests, the BFF validates the session cookie, attaches the Bearer token, and proxies the request to downstream resource APIs.
 
 ---

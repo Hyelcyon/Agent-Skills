@@ -1,7 +1,8 @@
 const MAX_REGEX_INPUT_LENGTH = 512;
 
-const SAFE_ALPHANUMERIC_PATTERN = /^[a-zA-Z0-9_-]+$/;
-const SAFE_EMAIL_PATTERN = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+// Keep sync patterns strictly linear (no nested quantifiers or overlapping alternations).
+const SAFE_ALPHANUMERIC_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/;
+const SAFE_EMAIL_PATTERN = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-zA-Z0-9-]{1,63}(?:\.[a-zA-Z0-9-]{1,63})+$/;
 
 function validateWithLengthBound(input: string, pattern: RegExp): boolean {
   if (input.length > MAX_REGEX_INPUT_LENGTH) {
@@ -10,30 +11,17 @@ function validateWithLengthBound(input: string, pattern: RegExp): boolean {
   return pattern.test(input);
 }
 
-async function matchWithTimeout(input: string, pattern: RegExp, timeoutMs: number = 200): Promise<boolean> {
-  if (input.length > MAX_REGEX_INPUT_LENGTH) {
-    throw new Error('Input exceeds safe evaluation length');
-  }
-
-  return new Promise<boolean>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error('Regex evaluation timed out'));
-    }, timeoutMs);
-
-    try {
-      const result = pattern.test(input);
-      clearTimeout(timer);
-      resolve(result);
-    } catch (err) {
-      clearTimeout(timer);
-      reject(err);
-    }
-  });
+// Note: JS timers cannot interrupt synchronous RegExp.test on the main thread; enforce length bounds and DFA patterns (or worker_threads / node-re2) for untrusted patterns.
+function validateUsernameAndEmail(username: string, email: string): boolean {
+  return (
+    validateWithLengthBound(username, SAFE_ALPHANUMERIC_PATTERN) &&
+    validateWithLengthBound(email, SAFE_EMAIL_PATTERN)
+  );
 }
 
 export {
   SAFE_ALPHANUMERIC_PATTERN,
   SAFE_EMAIL_PATTERN,
   validateWithLengthBound,
-  matchWithTimeout
+  validateUsernameAndEmail
 };

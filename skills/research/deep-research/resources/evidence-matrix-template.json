@@ -1,9 +1,36 @@
 {
-  "claimVerification": {
-    "claim": "Specific performance or architectural assertion",
-    "verified": true,
-    "evidenceSource": "Official documentation, benchmark run, or specification link",
-    "reproducibilityCommand": "Command used to empirically reproduce result",
-    "confidenceScore": 0.95
+  "hypothesis": "If we adopt [Candidate X], we achieve [Metric Y] under [Condition Z] within [Constraint C].",
+  "claims": [
+    {
+      "claim": "Specific performance, durability, or architectural assertion",
+      "verified": true,
+      "sourceTier": 1,
+      "evidenceSource": "Official documentation URL, specification section, or benchmark commit",
+      "falsificationQuery": "Exact negative query used to probe breaking changes or caveats",
+      "reproducibilityCommand": "Command used to empirically reproduce result",
+      "confidenceScore": 0.95
+    }
+  ],
+  "decisionMatrix": {
+    "scoringScale": "1-5",
+    "weightsSum": 1.0,
+    "criteria": [
+      { "name": "Latency & Backpressure", "weight": 0.35 },
+      { "name": "Day-2 Operational Burden", "weight": 0.25 },
+      { "name": "Security Blast Radius", "weight": 0.20 },
+      { "name": "Migration & Ecosystem Risk", "weight": 0.20 }
+    ],
+    "candidates": [
+      {
+        "name": "Option A (Baseline)",
+        "scores": {
+          "Latency & Backpressure": 3,
+          "Day-2 Operational Burden": 3,
+          "Security Blast Radius": 4,
+          "Migration & Ecosystem Risk": 5
+        },
+        "weightedTotal": 3.6
+      }
+    ]
   }
 }

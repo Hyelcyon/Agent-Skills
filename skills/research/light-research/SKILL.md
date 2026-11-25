@@ -60,7 +60,7 @@ Do not fall into confirmation bias loops. Before declaring an approach viable, a
 
 ### Phase 5: Empirical Scratch Verification
 Validate the discovered API or fix before applying it to project files:
-1. Execute a zero-dependency scratch script (`scratch/test_api.ts`, `node -e "..."`, `python -c "..."`) or a isolated type check (`tsc --noEmit`, `cargo check`).
+1. Execute a zero-dependency scratch script (`scratch/test_api.ts`, `node -e "..."`, `python -c "..."`) or an isolated type check (`tsc --noEmit`, `cargo check`).
 2. Verify exact exit codes, runtime outputs, and error states.
 3. Report verified evidence and direct canonical documentation links.
 

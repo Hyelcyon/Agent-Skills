@@ -15,5 +15,6 @@ Detailed reference for 3NF boundaries, denormalization thresholds, and soft dele
 
 ## 2. Eliminating the Soft-Delete Anti-Pattern (`is_deleted`)
 
-The `is_deleted = true` pattern poisons every unique constraint and query planner filter.
-- **Senior Alternative**: Move deleted rows into an explicit archive table (`orders_archive`), or use separate PostgreSQL table partitioning.
+The `is_deleted = true` pattern poisons unique constraints, bloats hot indexes, and complicates every query predicate.
+- **Preferred Alternative**: Move deleted rows into an explicit archive table (`orders_archive`), or partition out archived states.
+- **If Retention in the Same Table Is Mandatory**: Store `deleted_at TIMESTAMPTZ` (nullable) and enforce uniqueness strictly via partial unique indexes (`CREATE UNIQUE INDEX uq_active_users_email ON users ((LOWER(email))) WHERE deleted_at IS NULL;`).

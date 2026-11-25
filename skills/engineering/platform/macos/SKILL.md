@@ -75,9 +75,11 @@ Senior systems engineering standards and operational runbooks for Apple macOS (S
 
 ---
 
-## 2. Prohibited Anti-Patterns
+## 2. Prohibited Anti-Patterns & Fatal Mistakes
 
 - ❌ Using deprecated `launchctl load` or `launchctl unload` (use modern `bootstrap` / `bootout`).
+- ❌ Relying on Apple-deprecated `sandbox-exec` for App Store / new production distributions instead of Hardened Runtime & App Sandbox entitlements.
+- ❌ Tapping removed legacy Homebrew taps (`homebrew/bundle`, `homebrew/core`) in `Brewfile` on modern Homebrew 4.x+.
 - ❌ Hardcoding `/usr/local/bin` paths on Apple Silicon systems (Homebrew installs to `/opt/homebrew/bin`).
 - ❌ Distributing native arm64 Mach-O binaries without ad-hoc or developer code signing (causes immediate SIGKILL).
 - ❌ Modifying SIP-protected root paths (`/System`, `/usr/bin`).

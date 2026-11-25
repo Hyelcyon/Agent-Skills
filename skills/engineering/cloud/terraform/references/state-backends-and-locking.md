@@ -23,10 +23,8 @@ CI Pipeline / Engineer A              CI Pipeline / Engineer B
   Release Mutex Lock
 ```
 
-### AWS S3 + DynamoDB Lock Schema
-In AWS environments, the S3 backend stores the `.tfstate` blob with server-side encryption (KMS or AES-256), while DynamoDB provides strong consistency for locking:
-- **Partition Key**: `LockID` (String)
-- **Lock Attribute Payload**: Contains the execution ID, machine hostname, timestamp, and lock owner.
+### AWS S3 + Lockfile / DynamoDB Lock Schema
+In AWS environments, the S3 backend stores the `.tfstate` blob encrypted at rest. Terraform 1.10+ supports native S3 object locking (`use_lockfile = true`) cleanly without extra DynamoDB provisioning, while legacy setups rely on DynamoDB `dynamodb_table` (`LockID` string partition key).
 
 ### Handling Stuck Locks Safely
 If an execution process crashes violently (e.g., runner OOMKill) before releasing the lock, the lock must be investigated before unlocking:

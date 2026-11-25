@@ -5,6 +5,7 @@ import { functionalAuthInterceptor } from '../examples/functional_auth_intercept
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    // Angular 20+ promotes this API to `provideZonelessChangeDetection()`
     provideExperimentalZonelessChangeDetection(),
     provideRouter([], withComponentInputBinding()),
     provideHttpClient(withInterceptors([functionalAuthInterceptor]))

@@ -5,7 +5,7 @@ description: Use when designing, building, or reviewing modern RESTful, RPC, or 
 
 # Enterprise Backend API Engineering
 
-A comprehensive runbook for architecting resilient, production-grade REST and RPC APIs, implementing O(1) cursor pagination, idempotency guarantees, and standard Problem Details error schemas.
+A comprehensive runbook for architecting resilient, production-grade REST and RPC APIs, implementing O(log N) keyset cursor pagination, idempotency guarantees, and standard Problem Details error schemas.
 
 ## When to Use
 - Designing RESTful endpoints, payload structures, and status code semantics.
@@ -26,8 +26,8 @@ A comprehensive runbook for architecting resilient, production-grade REST and RP
 Phase 1: Contract & Resource URI Topology Profiling (OpenAPI 3.1)
 Phase 2: Error & Header Boundary Definition (RFC 9457 Problem Details)
 Phase 3: State Mutation & Idempotency Enforcement (Idempotency-Key header)
-Phase 4: Scalable Traversal Implementation (O(1) cursor keyset pagination)
-Phase 5: Contract & Integration Verification (prism mock, schema validation)
+Phase 4: Scalable Traversal Implementation (Keyset cursor pagination)
+Phase 5: Contract & Integration Verification (OpenAPI lint & contract tests — never blocking prism mock)
 ```
 
 ### Phase 1: Contract & Resource URI Profiling
@@ -49,23 +49,26 @@ Standardize error responses on RFC 9457 `application/problem+json`:
 Require `Idempotency-Key` headers on non-idempotent mutation endpoints (`POST /payments`, `POST /transfers`). Cache results in an atomic distributed store (Redis) with TTLs.
 
 ### Phase 4: Scalable Traversal Implementation
-Implement opaque, base64url-encoded composite cursor pagination `(created_at, id)`. Never expose raw database offsets on large public endpoints.
+Implement opaque, `base64url`-encoded composite cursor pagination `(created_at, id)` for `O(log N)` keyset index seeks instead of `O(offset)` row scans. Never expose raw database offsets on large public endpoints.
 
 ### Phase 5: Verification & Schema Proof
-Validate endpoint conformance and status codes:
+Lint OpenAPI contracts non-blockingly and run contract integration tests (never launch blocking mock servers such as `npx prism mock` synchronously inside verification loops):
 ```bash
-npx prism mock resources/openapi-31-template.json
+npx @redocly/cli lint resources/openapi-31-template.json
 ```
 
 ---
 
-## Prohibited Anti-Patterns
+## Prohibited Anti-Patterns & Fatal Mistakes
 
-- ❌ Using deep `OFFSET` pagination on tables with more than 10,000 rows.
-- ❌ Non-standard ad-hoc JSON error structures without status codes or RFC 9457 fields.
-- ❌ Executing financial or stateful mutations without idempotency keys.
-- ❌ Using HTTP verbs in URI paths (e.g. `/api/getOrderById` instead of `GET /api/orders/:id`).
-- ❌ Returning HTTP 200 with `{ "error": true }` payloads.
+- ❌ Using deep `OFFSET` pagination on tables with more than 10,000 rows (`O(offset)` table scan + window drift).
+- ❌ Encoding cursors with standard `base64` (`+`, `/`, `=`) instead of URL-safe `base64url`, or omitting a unique tie-breaker (`id`).
+- ❌ Non-standard ad-hoc JSON error structures without status codes or RFC 9457 `application/problem+json` fields.
+- ❌ Executing financial or stateful mutations without `Idempotency-Key`, atomic `SET NX` locks, `payloadHash` verification, and lease TTLs.
+- ❌ Using non-atomic Redis `GET` + `INCR`/`ZADD` for distributed rate limiting (TOCTOU race) or omitting eviction in local maps.
+- ❌ Launching synchronous blocking mock servers (`npx prism mock`) inside agent verification loops.
+- ❌ Over-engineering heavy Redis idempotency stores or distributed rate limiters on trivial internal read-only endpoints (apply YAGNI).
+- ❌ Using HTTP verbs in URI paths (e.g. `/api/getOrderById` instead of `GET /api/orders/:id`) or returning HTTP 200 with `{ "error": true }`.
 
 ---
 

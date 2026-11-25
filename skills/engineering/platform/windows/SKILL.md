@@ -73,8 +73,11 @@ Senior systems engineering standards and operational runbooks for modern Windows
 
 ---
 
-## 2. Prohibited Anti-Patterns
+## 2. Prohibited Anti-Patterns & Fatal Mistakes
 
+- ❌ Invoking `sc` or `curl` without `.exe` in PowerShell (`sc` aliases `Set-Content`; `curl` aliases `Invoke-WebRequest`).
+- ❌ Ignoring `$LASTEXITCODE` after native commands (`icacls.exe`, `sc.exe`, `git.exe`): `$ErrorActionPreference = 'Stop'` does not catch non-zero native exit codes reliably without checking `$LASTEXITCODE` or `$PSNativeCommandUseErrorActionPreference = $true`.
+- ❌ Stripping inheritance (`/inheritance:r`) in a separate earlier command before granting `SYSTEM`/`Administrators` (creates a zero-ACL lock-out race window).
 - ❌ Using backtick line continuations (`` ` ``) in scripts (fragile against invisible trailing whitespace).
 - ❌ Using `Write-Host` for data output (destroys pipeline reusability; use `Write-Output` or return objects).
 - ❌ Leaving `$ErrorActionPreference = 'Continue'` in mission-critical automation.

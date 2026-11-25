@@ -24,7 +24,7 @@ interface ApiEndpoints {
   readonly billing: string;
 }
 
-const API_ENDPOINTS: ApiEndpoints = {
+const API_ENDPOINTS = {
   auth: '/api/v1/auth',
   billing: '/api/v1/billing',
 } as const satisfies ApiEndpoints;

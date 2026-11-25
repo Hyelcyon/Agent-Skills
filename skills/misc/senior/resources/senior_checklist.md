@@ -1,9 +1,11 @@
 # Senior Developer Quality Checklist
 
-- [ ] Does this change solve the root cause rather than patching a symptom?
-- [ ] Is this the smallest coherent diff that achieves the outcome?
-- [ ] Were any unnecessary dependencies, helper wrappers, or abstractions introduced?
-- [ ] Are all identifiers, docstrings, and comments authored in standard English?
-- [ ] Have all redundant inline noise comments been eliminated?
-- [ ] Have tests or compiler commands been executed to verify behavior?
-- [ ] Are all boundary edge cases (null, 0, empty, disconnects) handled safely?
+- [ ] Root cause located via caller/state tracing rather than patching a downstream symptom?
+- [ ] Minimal coherent diff implemented with zero unrelated refactoring or whitespace churn?
+- [ ] Zero premature abstractions, single-use wrappers, or unnecessary new dependencies added?
+- [ ] Shallow nesting and shared parameterized helpers used instead of duplicated branches?
+- [ ] Zero bare error suppression (`except: pass`, empty `catch`, unchecked native `$LASTEXITCODE`)?
+- [ ] Zero hardcoded secrets, credentials, or local machine paths introduced?
+- [ ] Identifiers and comments in standard English, with zero syntax-echo AI-slop comments?
+- [ ] Boundary cases (`null`, `0`, empty, timeouts, invalid IDs, disconnect races) handled safely?
+- [ ] Real build/type-check/test commands executed *after final edit* with zero skipped failures?

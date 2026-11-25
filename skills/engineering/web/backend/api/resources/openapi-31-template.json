@@ -1,9 +1,14 @@
 {
   "openapi": "3.1.0",
+  "jsonSchemaDialect": "https://spec.openapis.org/oas/3.1/dialect/base",
   "info": {
     "title": "Enterprise Core REST API",
     "version": "1.0.0",
-    "description": "Standardized OpenAPI 3.1 contract specification"
+    "description": "Standardized OpenAPI 3.1 contract with cursor pagination, idempotent mutations, and RFC 9457 Problem Details.",
+    "license": {
+      "name": "Apache-2.0",
+      "identifier": "Apache-2.0"
+    }
   },
   "servers": [
     {
@@ -11,13 +16,171 @@
       "description": "Production gateway"
     }
   ],
-  "paths": {},
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/orders": {
+      "get": {
+        "operationId": "listOrders",
+        "summary": "List orders with opaque keyset cursor pagination",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsResponse"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createOrder",
+        "summary": "Create an order idempotently",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetailsResponse"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetailsResponse"
+          },
+          "422": {
+            "$ref": "#/components/responses/ProblemDetailsResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/ProblemDetailsResponse"
+          }
+        }
+      }
+    }
+  },
   "components": {
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "ProblemDetailsResponse": {
+        "description": "RFC 9457 Problem Details error response",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "required": ["id", "customerId", "amountCents", "createdAt"],
+        "properties": {
+          "id": { "type": "string" },
+          "customerId": { "type": "string" },
+          "amountCents": { "type": "integer", "minimum": 1 },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateOrderRequest": {
+        "type": "object",
+        "required": ["customerId", "amountCents"],
+        "properties": {
+          "customerId": { "type": "string", "minLength": 1 },
+          "amountCents": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "OrderPage": {
+        "type": "object",
+        "required": ["items", "nextCursor", "hasMore"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Order" }
+          },
+          "nextCursor": {
+            "type": ["string", "null"]
+          },
+          "hasMore": { "type": "boolean" }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "required": ["type", "title", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "type": { "type": "string", "format": "uri-reference" },
+          "title": { "type": "string" },
+          "status": { "type": "integer", "minimum": 100, "maximum": 599 },
+          "detail": { "type": "string" },
+          "instance": { "type": "string", "format": "uri-reference" }
+        }
       }
     }
   }

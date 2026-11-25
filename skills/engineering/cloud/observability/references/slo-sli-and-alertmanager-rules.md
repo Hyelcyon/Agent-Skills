@@ -53,20 +53,20 @@ To prevent paging on brief spikes that immediately subside, Google SRE mandates 
 - alert: ApiAvailabilityBurnRateUrgent
   expr: |
     (
-      sum(rate(http_requests_total{status=~"5.."}[1h]))
+      sum by (service) (rate(http_requests_total{status=~"5.."}[1h]))
       /
-      sum(rate(http_requests_total[1h]))
+      clamp_min(sum by (service) (rate(http_requests_total[1h])), 1e-9)
     ) > (14.4 * (1 - 0.999))
     and
     (
-      sum(rate(http_requests_total{status=~"5.."}[5m]))
+      sum by (service) (rate(http_requests_total{status=~"5.."}[5m]))
       /
-      sum(rate(http_requests_total[5m]))
+      clamp_min(sum by (service) (rate(http_requests_total[5m])), 1e-9)
     ) > (14.4 * (1 - 0.999))
   for: 2m
   labels:
     severity: page
   annotations:
-    summary: "High API Error Budget Consumption (14.4x Burn Rate)"
+    summary: "High API Error Budget Consumption (14.4x Burn Rate) on {{ $labels.service }}"
     description: "The API has consumed 2% of its 30-day error budget in the last hour, and the condition is ongoing."
 ```

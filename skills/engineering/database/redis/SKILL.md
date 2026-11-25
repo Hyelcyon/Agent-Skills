@@ -9,7 +9,12 @@ This skill establishes the production standard for in-memory data storage, cachi
 
 ---
 
-## 1. Senior Craftsmanship Principles
+## 1. Senior Engineering Craftsmanship & Domain Invariants
+
+- **Root-Cause Tracing**: Inspect `INFO memory`, `SLOWLOG GET`, `CLUSTER SLOTS`, and lock ownership traces before modifying TTLs, eviction policies, or Lua scripts.
+- **Minimal Surgical Diff**: Fix atomicity, key slot routing, or TTL bugs in place without adding unnecessary client wrappers.
+- **Failing-First Repro**: Reproduce lock races, cache stampedes, or `CROSSSLOT` Cluster failures in a minimal script/unit test against fakes or a local instance before patching.
+- **Non-Blocking Verification**: Validate keyspaces via throttled `SCAN`/`--bigkeys -i 0.1` and `SLOWLOG`, never `KEYS *` or blocking commands.
 
 1. **Event Loop Non-Blocking Invariant**: Redis is single-threaded for command execution. Never execute $O(N)$ operations on unbounded keyspaces in production (`KEYS *`, `FLUSHALL`, large `HGETALL`). Use cursor-based `SCAN`, `HSCAN`, or pipeline batching.
 2. **Defensive Distributed Locking**:
@@ -21,19 +26,22 @@ This skill establishes the production standard for in-memory data storage, cachi
 4. **Deterministic Eviction and Memory Ceilings**:
    - Always configure explicit `maxmemory` and an intentional `maxmemory-policy` (e.g. `volatile-lru` or `allkeys-lfu`).
    - Default `noeviction` policy causes hard out-of-memory write errors (`OOM command not allowed when used memory > 'maxmemory'`).
-5. **Jittered Expirations**: Never set identical fixed TTLs on mass-inserted batch keys. Add random jitter (e.g., $TTL \pm 10\%$) to prevent Cache Avalanche.
+5. **Jittered Expirations**: Never set identical fixed TTLs on mass-inserted batch keys. Add random jitter (e.g., $TTL \pm 10\%$, clamped to $\ge 1\text{s}$) to prevent Cache Avalanche.
 
 ---
 
-## 2. Hard Anti-Patterns (Prohibited)
+## 2. Fatal Mistakes Never to Make
 
 | Anti-Pattern | Operational Risk | Production Remedy |
 | :--- | :--- | :--- |
 | `KEYS *` in production | Freezes the single-threaded engine; drops all client connections | Use non-blocking `SCAN <cursor> MATCH <pattern> COUNT 100` |
 | Releasing distributed lock via `DEL` | Race condition deletes a lock re-acquired by another worker | Release only via token-matching atomic Lua script |
-| Caching without TTL | Silent memory leaks until `maxmemory` saturation | Enforce mandatory TTL with random jitter on all volatile keys |
+| Multi-key Lua/pipeline without `{hash_tag}` | Fails with `CROSSSLOT` errors in Redis Cluster | Wrap shared slot key segments in `{entity:id}` braces and pass all keys via `KEYS[]` |
+| Hardcoding keys inside Lua scripts | Breaks Redis Cluster slot routing and static dependency analysis | Pass every accessed key exclusively via `KEYS[1..N]` |
+| Caching without TTL or unclamped jitter (`ex <= 0`) | Silent OOM leaks or `ERR invalid expire time` crashes | Enforce positive jittered TTLs (`max(1, ttl + jitter)`) |
 | Unbounded `HGETALL` on large hashes | Network buffer saturation and latency spikes | Restrict hash field sizes or read selectively via `HMGET` / `HSCAN` |
-| Bare `MGET` across hundreds of thousands of keys | Monopolizes engine processing time | Chunk multi-key operations into batches of 100-500 keys |
+| Bare `MGET` across hundreds of thousands of keys | Monopolizes engine processing time | Chunk multi-key operations into batches of 100-500 keys (per slot in Cluster) |
+| Legacy `rename-command` on Redis 7+ without ACLs | Deprecated in Redis 7+; weakens least-privilege auditing | Enforce Redis 7+ ACL rules (`+@all -@dangerous`) and disable unauthenticated `default` |
 | Storing massive blobs (> 512KB) in strings | Memory fragmentation and I/O serialization bottlenecks | Store large payloads in object storage (S3); store metadata/pointers in Redis |
 
 ---
@@ -78,37 +86,32 @@ redis-cli SLOWLOG GET 10
 ```
 
 ### Phase 2: Key Namespacing & TTL Safety Contract
-Adopt structured colon-separated hierarchical namespacing:
+Adopt structured colon-separated hierarchical namespacing; in Redis Cluster, wrap shared multi-key prefixes in `{hash_tag}` braces so multi-key Lua scripts hit the same hash slot:
 ```
-<env>:<service>:<entity>:<id>:<attribute>
-prod:orders:checkout:99481:lock
+<env>:<service>:{<entity>:<id>}:<attribute>
+prod:orders:{checkout:99481}:lock
 ```
 
 ### Phase 3: Deterministic Data Structure & Script Design
-Execute atomic multi-operation logic using preloaded SHA1 Lua scripts:
+Execute atomic multi-operation logic using preloaded SHA1 Lua scripts (`$SCRIPT_SHA = ...` in PowerShell, `SCRIPT_SHA=$(...)` in Bash):
 ```bash
-# Load Lua script into Redis script cache
+# bash
 SCRIPT_SHA=$(redis-cli SCRIPT LOAD "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end")
-
-# Execute via EVALSHA to avoid script re-transmission overhead
-redis-cli EVALSHA "$SCRIPT_SHA" 1 "prod:orders:checkout:99481:lock" "worker-token-xyz"
+redis-cli EVALSHA "$SCRIPT_SHA" 1 "prod:orders:{checkout:99481}:lock" "worker-token-xyz"
 ```
 
 ### Phase 4: Concurrency & Lock Auditing
 Acquire distributed lock atomically:
 ```bash
 # Atomic acquire: Key, Token, NX (only if not exists), PX (millisecond TTL)
-redis-cli SET "resource:lock:order:102" "uuid-token-848" NX PX 30000
+redis-cli SET "prod:orders:{checkout:99481}:lock" "uuid-token-848" NX PX 30000
 ```
 
 ### Phase 5: Latency Proof & Slowlog Verification
-Audit latency percentiles from client perspective:
+Audit latency percentiles from client perspective (throttle `--bigkeys -i 0.1` or target a replica to avoid starving primaries):
 ```bash
-# Run real-time latency probe
 redis-cli --latency-history -i 5
-
-# Inspect top big keys without blocking the server
-redis-cli --bigkeys
+redis-cli --bigkeys -i 0.1
 ```
 
 ---
@@ -119,7 +122,7 @@ redis-cli --bigkeys
 - [Distributed Locks and Lua Scripting Reference](./references/distributed-locks-and-lua-scripting.md)
 - [Memory Optimization and Eviction Reference](./references/memory-optimization-and-eviction.md)
 - [Hardened Redis Server Configuration](./resources/redis.hardened.conf)
-- [Reentrant Lock Acquisition Lua Script](./resources/acquire_lock.lua)
+- [Idempotent Lease-Extending Lock Acquisition Lua Script](./resources/acquire_lock.lua)
 - [Safe Atomic Lock Release Lua Script](./resources/release_lock.lua)
 - [Distributed Lock Manager Context Implementation](./examples/distributed_lock_manager.py)
 - [Sliding Window Rate Limiter Example](./examples/sliding_window_rate_limiter.py)

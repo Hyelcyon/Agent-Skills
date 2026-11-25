@@ -1,22 +1,22 @@
 # Svelte 5 Performance Optimization and Anti-Patterns
 
-A technical guide to Svelte 5 compiler performance characteristics, memory profiling, and the Top 10 architectural anti-patterns.
+A technical guide to Svelte 5 compiler performance characteristics, memory optimization, and eliminating the Top 10 architectural anti-patterns.
 
 ---
 
 ## 1. Zero-Virtual-DOM Compilation Advantages
 
 Svelte 5 compiles templates into direct, fine-grained DOM operations:
-- **No Virtual DOM Diffing**: Unlike React, Svelte does not allocate virtual DOM trees or perform tree reconciliations on state change.
-- **Surgical Signal Wiring**: When `$state` changes, only the exact DOM text node or attribute binding registered to that signal is updated directly.
-- **Minimal Bundle Footprint**: Component runtime logic is reduced to minimal signal-graph listeners.
+- **No Virtual DOM Diffing**: State mutations do not allocate intermediate VNode trees or diff full component subtrees.
+- **Surgical Signal Wiring**: Only the exact text node, attribute, or block linked to a changed `$state` signal updates.
+- **Minimal Bundle Footprint**: Component logic compiles down to lean signal-graph subscriptions.
 
 ---
 
 ## 2. Memory & Snapshot Optimization
 
 ### Selective Use of `$state.raw()`
-For high-frequency or large collections (e.g. data grids, charting series, large API payloads), avoid deep proxy wrapping by utilizing `$state.raw()`:
+For large read-only tables, charting series, or WebGL buffers where nested fields are never mutated individually, avoid deep proxy wrapping with `$state.raw()`:
 
 ```svelte
 <script lang="ts">
@@ -29,62 +29,48 @@ function loadBatch(newRecords: Array<{ id: string; metric: number }>): void {
 ```
 
 ### Minimizing `$state.snapshot()` Invocations
-`$state.snapshot()` performs a recursive deep clone of reactive proxies. Avoid calling it inside animation loops, render loops, or high-frequency event handlers.
+`$state.snapshot()` performs a recursive deep clone of reactive proxies. Avoid calling it inside animation loops or high-frequency scroll/pointer handlers.
 
 ---
 
-## 3. Top 10 Svelte Anti-Patterns
+## 3. Top 10 Svelte 5 Anti-Patterns
 
 ### 1. Using Legacy `$:` Label Statements
-- ❌ **Anti-Pattern**: Using Svelte 3/4 reactive labels (`$: countDouble = count * 2`).
-- ✅ **The Senior Fix**: Use `$derived()` for calculations and `$effect()` for side effects.
+- ❌ **Anti-Pattern**: Svelte 3/4 reactive labels (`$: countDouble = count * 2`).
+- ✅ **Senior Fix**: Use `$derived()` for computed values and `$effect()` strictly for DOM/external side effects.
 
-### 2. Using `export let` for Props
-- ❌ **Anti-Pattern**: Declaring component props via `export let`.
-- ✅ **The Senior Fix**: Always use `let { propName } = $props()`.
+### 2. Using `export let` or Legacy `on:event` Directives
+- ❌ **Anti-Pattern**: `export let prop` or `<button on:click={fn}>`.
+- ✅ **Senior Fix**: Use `let { prop }: Props = $props()` and standard attribute handlers `onclick={fn}`.
 
-### 3. Mutating `$state` Inside `$effect()`
-- ❌ **Anti-Pattern**: Reading state A and updating state B inside an `$effect`, causing infinite render loops:
-  ```svelte
-  $effect(() => {
-    fullName = `${firstName} ${lastName}`;
-  });
-  ```
-- ✅ **The Senior Fix**: Compute derived state synchronously:
-  ```svelte
-  let fullName = $derived(`${firstName} ${lastName}`);
-  ```
+### 3. Mutating `$state` Inside `$effect()` or `$derived()`
+- ❌ **Anti-Pattern**: Computing derived state inside `$effect(() => { fullName = ... })` (triggers extra render cycles) or mutating state inside `$derived` (throws `state_unsafe_mutation`).
+- ✅ **Senior Fix**: `let fullName = $derived(`${firstName} ${lastName}`);`.
 
 ### 4. Using `<slot />` Instead of Snippets
-- ❌ **Anti-Pattern**: Using legacy slots which lack TypeScript type safety and parameterized arguments.
-- ✅ **The Senior Fix**: Use `{#snippet}` and `{@render}`.
+- ❌ **Anti-Pattern**: Legacy `<slot />` which lacks TypeScript parameter typing.
+- ✅ **Senior Fix**: Use `{#snippet}` and `{@render}`.
 
-### 5. Overusing Deep Proxy `$state` for Huge Datasets
-- ❌ **Anti-Pattern**: Putting massive 100,000-element arrays into `$state()` when internal items are never modified individually.
-- ✅ **The Senior Fix**: Wrap large monolithic datasets in `$state.raw()`.
+### 5. Wrapping `Map`, `Set`, or Huge Immutable Arrays in `$state()`
+- ❌ **Anti-Pattern**: Expecting `$state(new Map())` to react to `.set()`, or deeply proxying 100k-row static arrays.
+- ✅ **Senior Fix**: Use `SvelteMap` / `SvelteSet` from `'svelte/reactivity'` for reactive collections and `$state.raw()` for large immutable arrays.
 
 ### 6. Forgetting Resource Cleanup in `$effect()`
-- ❌ **Anti-Pattern**: Setting up browser event listeners, WebSockets, or timers without returning a teardown function.
-- ✅ **The Senior Fix**: Return a cleanup callback from `$effect()`:
-  ```svelte
-  $effect(() => {
-    const handle = setInterval(tick, 1000);
-    return () => clearInterval(handle);
-  });
-  ```
+- ❌ **Anti-Pattern**: Creating timers, `fetch`, WebSockets, or event listeners without teardown.
+- ✅ **Senior Fix**: Return a cleanup callback clearing timers and calling `controller.abort()`.
 
-### 7. Attempting to Mutate `$derived` Values
-- ❌ **Anti-Pattern**: Trying to assign to a `$derived` variable (`doubled += 1`).
-- ✅ **The Senior Fix**: Derived values are strictly read-only. Mutate the source `$state` variable instead.
+### 7. Exporting Reassigned `$state` Directly from `.svelte.ts`
+- ❌ **Anti-Pattern**: `export let count = $state(0);` (`state_invalid_export` compiler error).
+- ✅ **Senior Fix**: Export factory/getter functions or mutate fields on an exported `const` instance.
 
-### 8. Creating Redundant Svelte Stores
-- ❌ **Anti-Pattern**: Creating `writable()` or `readable()` stores for simple component state.
-- ✅ **The Senior Fix**: Use `$state()` inside components or `.svelte.ts` files.
+### 8. Module-Level Singletons in SvelteKit SSR
+- ❌ **Anti-Pattern**: `export const session = new UserState()` at module scope on the server (leaks data across concurrent users).
+- ✅ **Senior Fix**: Instantiate per-request state via `setContext` / `getContext` in root `+layout.svelte`.
 
 ### 9. Omitting Key Expressions in `{#each}` Loops
-- ❌ **Anti-Pattern**: Writing `{#each items as item}` without specifying a unique key `(item.id)`.
-- ✅ **The Senior Fix**: Always provide a unique tracking key: `{#each items as item (item.id)}`.
+- ❌ **Anti-Pattern**: Writing `{#each items as item}` without a unique key.
+- ✅ **Senior Fix**: Always key dynamic lists by stable ID: `{#each items as item (item.id)}`.
 
 ### 10. Deep Prop Drilling
-- ❌ **Anti-Pattern**: Passing props down through 5+ component layers.
-- ✅ **The Senior Fix**: Use Svelte's context API (`setContext` / `getContext`) or an exported stateful class from a `.svelte.ts` module.
+- ❌ **Anti-Pattern**: Threading props manually through 5+ component layers.
+- ✅ **Senior Fix**: Pass a `.svelte.ts` reactive class instance through `setContext` / `getContext`.

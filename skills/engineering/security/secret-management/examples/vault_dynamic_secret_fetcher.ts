@@ -4,8 +4,16 @@ interface EphemeralCredential {
   readonly validUntil: number;
 }
 
+type LeaseFetcher = () => Promise<EphemeralCredential>;
+
 class EphemeralSecretManager {
   private cachedCredential: EphemeralCredential | null = null;
+  private inflightRequest: Promise<EphemeralCredential> | null = null;
+  private readonly fetchLease: LeaseFetcher;
+
+  constructor(fetchLease: LeaseFetcher) {
+    this.fetchLease = fetchLease;
+  }
 
   async getValidCredential(): Promise<EphemeralCredential> {
     const now = Date.now();
@@ -13,19 +21,21 @@ class EphemeralSecretManager {
       return this.cachedCredential;
     }
 
-    const fetched = await this.requestDynamicLease();
-    this.cachedCredential = fetched;
-    return fetched;
-  }
+    // Coalesce concurrent cold-start or expiry callers onto a single Vault lease request
+    if (!this.inflightRequest) {
+      this.inflightRequest = this.fetchLease()
+        .then((fetched) => {
+          this.cachedCredential = fetched;
+          return fetched;
+        })
+        .finally(() => {
+          this.inflightRequest = null;
+        });
+    }
 
-  private async requestDynamicLease(): Promise<EphemeralCredential> {
-    return {
-      username: 'app_worker_temp',
-      secretToken: 'ephemeral_token_sample',
-      validUntil: Date.now() + 900000
-    };
+    return this.inflightRequest;
   }
 }
 
 export { EphemeralSecretManager };
-export type { EphemeralCredential };
+export type { EphemeralCredential, LeaseFetcher };

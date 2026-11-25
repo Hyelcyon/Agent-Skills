@@ -32,7 +32,7 @@ When assigned to containerize an application or optimize a Docker build, the age
 ### Phase 1: Project & Runtime Profiling
 1. Inspect the workspace root: read `package.json`, lockfiles (`pnpm-lock.yaml`, `package-lock.json`), or Python `pyproject.toml`.
 2. Determine output type:
-   - **Static client-side app (Vite/React)**: Build static `dist/` and serve via `nginx:alpine`.
+   - **Static client-side app (Vite/React)**: Build static `dist/` and serve via unprivileged `nginxinc/nginx-unprivileged:alpine` (port 8080, non-root).
    - **Dynamic server-side service (Node/Express/FastAPI)**: Run via minimal Node/Python runtime with graceful signal handlers.
 
 ### Phase 2: Context Shielding (.dockerignore First)
@@ -52,11 +52,11 @@ Structure the `Dockerfile` with distinct stages to maximize layer caching:
 2. Verify signal handling so `SIGTERM` initiates a graceful shutdown instead of timing out.
 
 ### Phase 5: Verification & Image Audit
-Execute local verification before declaring completion:
+Trace failing builds or startup crashes from root cause (`docker build --progress=plain`, `docker logs`, `docker inspect`) using minimal surgical layer diffs rather than stacking ad-hoc `RUN` patches. Execute non-blocking verification before declaring completion:
 ```bash
-docker build -t app-test:local .
-docker history app-test:local
-docker images app-test:local
+docker build -t app-test:1.0.0 .
+docker history app-test:1.0.0
+docker inspect --format '{{.Config.User}}' app-test:1.0.0
 ```
 
 ---
@@ -64,6 +64,8 @@ docker images app-test:local
 ## 2. Production Multi-Stage Standard
 
 ```dockerfile
+# syntax=docker/dockerfile:1.7
+
 FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -71,14 +73,14 @@ RUN corepack enable
 WORKDIR /app
 
 FROM base AS dependencies
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* ./
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 FROM base AS builder
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 RUN pnpm run build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm prune --prod
+RUN CI=true pnpm prune --prod
 
 FROM node:22-slim AS runner
 WORKDIR /app
@@ -94,12 +96,16 @@ CMD ["node", "dist/index.js"]
 
 ---
 
-## 3. Critical Anti-Patterns to Avoid
+## 3. Fatal Mistakes Never to Make / Prohibited Anti-Patterns
 - ❌ Running as `USER root` (exposes host system on container escape).
+- ❌ Disabling syscall filtering with `seccomp:unconfined` or granting unnecessary Linux capabilities (`cap_add`).
+- ❌ Binding local Compose ports to all interfaces (`"3000:3000"` exposes `0.0.0.0`) instead of `"127.0.0.1:3000:3000"`.
+- ❌ Mixing Alpine (`musl`) build stages with Debian/Distroless (`glibc`) runtime stages when native addons exist.
 - ❌ Running `COPY . .` before dependency installation (destroys Docker layer cache).
 - ❌ Retaining build compilers (`gcc`, `g++`, development headers) in production runner stage.
 - ❌ Passing passwords or tokens via `ARG` or `ENV` (persists in image metadata history).
-- ❌ Running `vite dev` or `vite preview` inside production containers.
+- ❌ Using mutable `:latest` tags in production images or running `vite dev`/`vite preview` inside production containers.
+- ❌ Running Node/Python as PID 1 without signal handlers or an init supervisor (`tini`/`--init`), causing 10s `SIGKILL` drops and zombie processes.
 
 ## References & Documentation
 - Deep Security & Anti-Patterns Runbook: [references/docker-security-and-antipatterns.md](./references/docker-security-and-antipatterns.md)

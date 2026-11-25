@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useActionState, useOptimistic, useRef } from 'react';
 
 interface Task {
@@ -15,8 +17,9 @@ async function createTaskAction(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const title = formData.get('title') as string;
-  if (!title || title.trim().length === 0) {
+  const rawTitle = formData.get('title');
+  const title = typeof rawTitle === 'string' ? rawTitle.trim() : '';
+  if (title.length === 0) {
     return {
       tasks: prevState.tasks,
       error: 'Task title cannot be empty'
@@ -25,7 +28,7 @@ async function createTaskAction(
 
   const newTask: Task = {
     id: crypto.randomUUID(),
-    title: title.trim()
+    title
   };
 
   return {
@@ -49,7 +52,7 @@ function ModernTaskForm({ initialTasks, inputRef }: TaskListProps) {
     state.tasks,
     (current, newTitle: string) => [
       ...current,
-      { id: 'temp-id', title: newTitle, pending: true }
+      { id: `optimistic-${crypto.randomUUID()}`, title: newTitle, pending: true }
     ]
   );
 
@@ -57,9 +60,10 @@ function ModernTaskForm({ initialTasks, inputRef }: TaskListProps) {
   const resolvedRef = inputRef ?? localInputRef;
 
   const handleSubmit = (formData: FormData) => {
-    const title = formData.get('title') as string;
-    if (title && title.trim()) {
-      addOptimisticTask(title.trim());
+    const rawTitle = formData.get('title');
+    const title = typeof rawTitle === 'string' ? rawTitle.trim() : '';
+    if (title.length > 0) {
+      addOptimisticTask(title);
     }
     formAction(formData);
   };

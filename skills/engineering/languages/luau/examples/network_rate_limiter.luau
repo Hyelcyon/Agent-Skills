@@ -7,6 +7,12 @@ export type RateLimiter = {
 local RateLimiterImpl = {}
 RateLimiterImpl.__index = RateLimiterImpl
 
+type RateLimiterInternal = typeof(setmetatable({} :: {
+    _maxTokens: number,
+    _refillRate: number,
+    _buckets: { [number]: { tokens: number, lastUpdate: number } },
+}, RateLimiterImpl))
+
 function RateLimiterImpl.new(maxTokens: number, refillRatePerSec: number): RateLimiter
     local self = setmetatable({
         _maxTokens = maxTokens,
@@ -16,7 +22,7 @@ function RateLimiterImpl.new(maxTokens: number, refillRatePerSec: number): RateL
     return (self :: any) :: RateLimiter
 end
 
-function RateLimiterImpl.consume(self: any, playerId: number): boolean
+function RateLimiterImpl.consume(self: RateLimiterInternal, playerId: number): boolean
     local now = os.clock()
     local bucket = self._buckets[playerId]
 

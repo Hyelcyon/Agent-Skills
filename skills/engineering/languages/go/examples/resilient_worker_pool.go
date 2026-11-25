@@ -26,6 +26,7 @@ type ManagedWorkerPool struct {
 	concurrency int
 	taskCh      chan Task
 	resultCh    chan TaskResult
+	stopOnce    sync.Once
 	stopCh      chan struct{}
 	doneWg      sync.WaitGroup
 	handler     func(context.Context, Task) (string, error)
@@ -94,11 +95,13 @@ func (p *ManagedWorkerPool) Results() <-chan TaskResult {
 	return p.resultCh
 }
 
-// Stop signals all workers to terminate and blocks until all goroutines exit cleanly.
+// Stop signals all workers idempotently and blocks until all goroutines exit cleanly.
 func (p *ManagedWorkerPool) Stop() {
-	close(p.stopCh)
-	p.doneWg.Wait()
-	close(p.resultCh)
+	p.stopOnce.Do(func() {
+		close(p.stopCh)
+		p.doneWg.Wait()
+		close(p.resultCh)
+	})
 }
 
 func main() {

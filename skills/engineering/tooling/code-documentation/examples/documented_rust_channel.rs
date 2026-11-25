@@ -1,30 +1,65 @@
-/// High-throughput ring buffer tracking bounded tasks across worker threads.
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+/// Fixed-capacity reservation tracker for concurrent worker tasks.
 ///
 /// # Invariants
-/// * Capacity is fixed at construction and never dynamically reallocated.
-/// * Thread-safe synchronization is maintained via atomic monotonic operations.
-pub struct BoundedTaskRingBuffer {
+/// * `capacity` is strictly within `1..=isize::MAX as usize` and immutable after construction.
+/// * `active` never exceeds `capacity` under concurrent `try_acquire` calls.
+pub struct BoundedTaskTracker {
     capacity: usize,
-    count: std::sync::atomic::AtomicUsize,
+    active: AtomicUsize,
 }
 
-impl BoundedTaskRingBuffer {
-    /// Creates a new bounded buffer with the specified capacity limit.
-    ///
-    /// # Errors
-    /// Returns `None` if `capacity` is 0 or exceeds `isize::MAX as usize`.
+impl BoundedTaskTracker {
+    /// Creates a bounded tracker, returning `None` if `capacity` is `0` or exceeds `isize::MAX as usize`.
     pub fn new(capacity: usize) -> Option<Self> {
         if capacity == 0 || capacity > isize::MAX as usize {
-            None
-        } else {
-            Some(Self {
-                capacity,
-                count: std::sync::atomic::AtomicUsize::new(0),
-            })
+            return None;
+        }
+        Some(Self {
+            capacity,
+            active: AtomicUsize::new(0),
+        })
+    }
+
+    /// Attempts to claim one task slot without blocking.
+    ///
+    /// Uses a CAS loop with `AcqRel` on success so callers observe prior releases
+    /// before entering the bounded section.
+    pub fn try_acquire(&self) -> bool {
+        let mut current = self.active.load(Ordering::Acquire);
+        loop {
+            if current >= self.capacity {
+                return false;
+            }
+            match self.active.compare_exchange_weak(
+                current,
+                current + 1,
+                Ordering::AcqRel,
+                Ordering::Acquire,
+            ) {
+                Ok(_) => return true,
+                Err(observed) => current = observed,
+            }
         }
     }
 
-    /// Returns the maximum capacity limit of the ring buffer.
+    /// Releases a previously acquired slot.
+    ///
+    /// # Panics
+    /// Panics if called when no slots are active, preventing wraparound underflow.
+    pub fn release(&self) {
+        self.active
+            .fetch_update(Ordering::Release, Ordering::Acquire, |current| {
+                if current == 0 {
+                    None
+                } else {
+                    Some(current - 1)
+                }
+            })
+            .expect("BoundedTaskTracker::release called with zero active slots");
+    }
+
     pub fn capacity(&self) -> usize {
         self.capacity
     }

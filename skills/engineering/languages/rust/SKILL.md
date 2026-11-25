@@ -59,13 +59,14 @@ cargo clippy --all-targets -- -D warnings
 
 ---
 
-## Prohibited Anti-Patterns
+## Fatal Mistakes Never to Make & Prohibited Anti-Patterns
 
-- ❌ Unchecked `unwrap()` in library code (use `?` or `.expect("invariant reason")`).
-- ❌ Indiscriminate `.clone()` calls without performance profiling.
-- ❌ Unsound `unsafe` blocks without formal safety documentation and invariant checks.
-- ❌ Blocking async threads with long-running synchronous CPU operations (use `spawn_blocking`).
-- ❌ Catching all compiler warnings with `#![allow(warnings)]`.
+- ❌ Unchecked `unwrap()` in library code (use `?` or `.expect("invariant: reason")`).
+- ❌ Holding a `std::sync::MutexGuard` or `RwLockGuard` across an `.await` point in async code (causes executor deadlocks; use block scoping or `tokio::sync::Mutex`).
+- ❌ Indiscriminate `.clone()` calls without profiling or clear ownership justification.
+- ❌ Unsound `unsafe` blocks without `// SAFETY:` invariant documentation and Miri verification.
+- ❌ Blocking async worker threads with CPU-heavy or blocking I/O operations (use `tokio::task::spawn_blocking`).
+- ❌ Silencing compiler/clippy diagnostics globally with `#![allow(warnings)]`.
 
 ---
 

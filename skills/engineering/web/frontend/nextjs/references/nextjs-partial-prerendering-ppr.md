@@ -45,13 +45,17 @@ export const experimental_ppr = true;
 
 async function DynamicUserCart() {
   const cookieStore = await cookies();
-  const userId = cookieStore.get('uid')?.value;
-  if (!userId) return <div>Cart: 0 items</div>;
+  const sessionToken = cookieStore.get('session_token')?.value;
+  if (!sessionToken) return <div>Cart: 0 items</div>;
 
-  const res = await fetch(`https://api.enterprise.com/cart/${userId}`, {
+  const res = await fetch('https://api.enterprise.com/cart', {
+    headers: { Authorization: `Bearer ${sessionToken}` },
     cache: 'no-store'
   });
-  const data = await res.json();
+  if (!res.ok) {
+    return <div>Cart unavailable</div>;
+  }
+  const data = (await res.json()) as { itemCount: number };
 
   return <div>Cart: {data.itemCount} items</div>;
 }
@@ -65,7 +69,7 @@ export default function StorefrontPage() {
       </header>
 
       <section>
-        <Suspense fallback={<div class="skeleton">Loading cart...</div>}>
+        <Suspense fallback={<div className="skeleton">Loading cart...</div>}>
           <DynamicUserCart />
         </Suspense>
       </section>

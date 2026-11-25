@@ -46,11 +46,11 @@ Evaluate gathered evidence through an explicit gap-detection step:
 - *What edge cases, concurrency hazards, or migration risks remain unverified?*
 If significant gaps or contradictions are detected, reformulate targeted follow-up queries and continue the loop before proceeding to decision matrices.
 
-### Phase 4: Weighted Decision Matrix Evaluation (Pugh Matrix)
-Quantify candidate alternatives objectively across 4-6 normalized criteria (weights sum to 1.0, scores 1-5): performance, operational simplicity, ecosystem health, and migration risk.
+### Phase 4: Weighted Decision Matrix Evaluation (Pugh / Scoring Matrix)
+Quantify candidate alternatives objectively across 4-6 normalized criteria (weights sum to `1.0`, scored `1-5` against defined thresholds; or relative `+1 / 0 / -1` Pugh scoring against an incumbent baseline): performance, operational simplicity, ecosystem health, and migration risk.
 
 ### Phase 5: ADR Formulation & Consensus Proof
-Codify the chosen direction into an Architecture Decision Record in `docs/adr/ADR-XXXX.md` detailing decision drivers, evaluated options, falsified alternatives, and accepted technical debt. Review findings against organizational requirements.
+Codify the chosen direction into an Architecture Decision Record at `docs/adr/ADR-NNNN.md` (4-digit sequential ID, e.g., `ADR-0042.md`) detailing decision drivers, evaluated options, falsified alternatives, and accepted technical debt. Review findings against organizational requirements.
 
 ---
 

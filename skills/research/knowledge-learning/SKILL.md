@@ -68,7 +68,7 @@ Author an atomic, self-contained knowledge document using the standard template:
 - ❌ Codifying unverified assumptions without executing an empirical verification command.
 - ❌ Creating monolithic, multi-topic knowledge notes that bloat context windows.
 - ❌ Leaving new knowledge cards unindexed in `knowledge.json`.
-- ❌ Adding inline comments to code snippets in knowledge assets.
+- ❌ Adding redundant AI-slop comments to code snippets in knowledge assets (preserve shebangs and brief invariant "why" comments).
 
 ---
 

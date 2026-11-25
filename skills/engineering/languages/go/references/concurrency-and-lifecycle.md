@@ -18,15 +18,26 @@ If a struct or component starts background goroutines, it **must** expose a life
 ```go
 package worker
 
+import (
+	"sync"
+	"time"
+)
+
 type Service struct {
-	stopCh chan struct{}
-	doneCh chan struct{}
+	interval time.Duration
+	stopOnce sync.Once
+	stopCh   chan struct{}
+	doneCh   chan struct{}
 }
 
-func NewService() *Service {
+func NewService(interval time.Duration) *Service {
+	if interval <= 0 {
+		interval = time.Second
+	}
 	s := &Service{
-		stopCh: make(chan struct{}),
-		doneCh: make(chan struct{}),
+		interval: interval,
+		stopCh:   make(chan struct{}),
+		doneCh:   make(chan struct{}),
 	}
 	go s.run()
 	return s
@@ -34,19 +45,24 @@ func NewService() *Service {
 
 func (s *Service) run() {
 	defer close(s.doneCh)
+	ticker := time.NewTicker(s.interval)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-s.stopCh:
 			return
-		default:
+		case <-ticker.C:
 			// Execute periodic unit of work
 		}
 	}
 }
 
-// Stop signals the worker and blocks until execution has deterministically terminated.
+// Stop signals the worker idempotently and blocks until exit completes.
 func (s *Service) Stop() {
-	close(s.stopCh)
+	s.stopOnce.Do(func() {
+		close(s.stopCh)
+	})
 	<-s.doneCh
 }
 ```

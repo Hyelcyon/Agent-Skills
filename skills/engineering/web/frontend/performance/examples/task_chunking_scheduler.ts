@@ -23,8 +23,8 @@ async function processArrayInChunks<T, R>(
   const results: R[] = [];
   let chunkStartTime = performance.now();
 
-  for (let i = 0; i < items.length; i++) {
-    results.push(transform(items[i]));
+  for (const item of items) {
+    results.push(transform(item));
 
     if (performance.now() - chunkStartTime > maxContinuousTimeMs) {
       await yieldToMainThread();

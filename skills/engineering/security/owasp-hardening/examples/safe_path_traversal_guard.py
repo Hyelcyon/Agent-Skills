@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 def read_user_file_safely(base_dir_path: str, untrusted_filename: str) -> bytes:
     if "\x00" in untrusted_filename:
         raise ValueError("Null byte injection detected")

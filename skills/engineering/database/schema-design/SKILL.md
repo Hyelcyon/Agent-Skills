@@ -19,6 +19,15 @@ Production standard for designing relational data models, selecting high-perform
 
 ---
 
+## Senior Engineering Craftsmanship
+
+- **Root-Cause Domain Tracing**: Trace entity cardinality, tenant isolation boundaries, and query/write access paths before writing DDL.
+- **Minimal Surgical Diff**: Model normalized core entities and explicit constraints without speculative columns, premature denormalization, or redundant indexes.
+- **Failing-First Repro**: Validate schema constraints against edge-case inserts (case-variant emails, overlapping temporal intervals, cross-tenant RLS, integer overflow) on a test DB before deploying.
+- **Non-Blocking Verification**: Run DDL linters (`sqlfluff lint`) and ephemeral schema checks rather than mutating shared production schemas directly.
+
+---
+
 ## 5-Phase Agent Operational Protocol
 
 ```
@@ -30,16 +39,16 @@ Phase 5: Schema DDL Validation & Linter Verification
 ```
 
 ### Phase 1: Domain Entity & Cardinality Profiling
-Map business domain aggregates, relationships (1:1, 1:N, N:M), and expected transaction volumes. Identify isolation requirements (multi-tenancy, soft deletes, temporal tracking).
+Map business domain aggregates, relationships (1:1, 1:N, N:M), and expected transaction volumes. Identify isolation requirements (multi-tenancy, archival lifecycle, temporal tracking).
 
 ### Phase 2: Primary Key & Multi-Tenancy Boundaries
 Select primary keys:
-- Use monotonic **UUIDv7** for distributed entities and public API surfaces to prevent B-Tree index fragmentation.
-- Use **BIGINT GENERATED ALWAYS AS IDENTITY** for internal high-throughput append-only ledgers.
+- Use monotonic **UUIDv7** (application-generated UUIDv7 / `pg_uuidv7`, or native `uuidv7()` in PostgreSQL 18+) for distributed entities and public API surfaces to prevent B-Tree index fragmentation. Never default high-write B-Tree PKs to `gen_random_uuid()` (UUIDv4).
+- Use **BIGINT GENERATED ALWAYS AS IDENTITY** for internal high-throughput append-only ledgers and audit tables (never legacy `BIGSERIAL`).
 - Enforce composite primary/foreign keys `(tenant_id, id)` for shared-database multi-tenant architectures.
 
 ### Phase 3: Normalization & Constraint Modeling
-Enforce Third Normal Form (3NF) to eliminate update anomalies. Mandate domain invariants via database-level `CHECK` constraints, foreign keys with `ON DELETE RESTRICT/CASCADE`, and non-nullable timestamp tracking.
+Enforce Third Normal Form (3NF) to eliminate update anomalies. Mandate domain invariants via database-level `CHECK` constraints, explicitly named foreign keys (`fk_...`) with `ON DELETE RESTRICT/CASCADE`, `BIGINT` or `NUMERIC` for monetary values, and non-nullable `TIMESTAMPTZ` tracking.
 
 ### Phase 4: Semi-Structured Boundaries
 Confine `JSONB` to unstructured third-party payloads, dynamic schema-less fields, or unindexed metadata. Keep filterable, aggregatable business fields in strongly typed relational columns.
@@ -52,13 +61,16 @@ sqlfluff lint schema.sql --dialect postgres
 
 ---
 
-## Prohibited Anti-Patterns
+## Fatal Mistakes Never to Make
 
-- ❌ Using random UUIDv4 as primary keys on high-insert B-Tree tables (causes page splits).
+- ❌ Using random UUIDv4 (`gen_random_uuid()`) as primary keys on high-insert B-Tree tables (causes page splits and buffer cache thrashing).
+- ❌ Using legacy `BIGSERIAL` instead of SQL-standard `BIGINT GENERATED ALWAYS AS IDENTITY`.
 - ❌ Storing relational, queryable domain fields inside unstructured JSONB blobs.
-- ❌ Omitting `CHECK` constraints on status, currency, or numerical ranges.
-- ❌ Missing composite foreign key indexes on join columns.
+- ❌ Using `BETWEEN` for SCD Type 2 temporal queries (double-matches boundary timestamps; use half-open `[valid_from, valid_to)` ranges).
+- ❌ Omitting `CHECK` constraints on status, currency, or numerical ranges, or sizing monetary cents columns as 32-bit `INT`.
+- ❌ Missing foreign key indexes on child join columns.
 - ❌ Storing timestamps without explicit timezone metadata (`TIMESTAMP` instead of `TIMESTAMPTZ`).
+- ❌ Relying on PostgreSQL RLS with `SUPERUSER` or `BYPASSRLS` application roles, or missing `NULLIF(current_setting(...), '')`.
 
 ---
 

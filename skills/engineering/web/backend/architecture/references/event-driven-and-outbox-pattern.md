@@ -21,37 +21,45 @@ BEGIN TRANSACTION;
 
 UPDATE accounts
 SET balance = balance - 100
-WHERE id = 'acc_1';
+WHERE id = 'acc_1' AND balance >= 100;
 
-INSERT INTO outbox_events (id, aggregate_type, aggregate_id, event_type, payload, status)
+INSERT INTO outbox_events (id, aggregate_type, aggregate_id, event_type, payload, status, attempts, next_retry_at)
 VALUES (
-  'evt_101',
+  gen_random_uuid(),
   'account',
   'acc_1',
   'FUNDS_DEBITED',
-  '{"amount": 100, "currency": "USD"}'::jsonb,
-  'PENDING'
+  '{"amountCents": 100, "currency": "USD"}'::jsonb,
+  'PENDING',
+  0,
+  NOW()
 );
 
 COMMIT;
 ```
 
-An independent relay worker reads `PENDING` outbox records via Change Data Capture (CDC / Debezium) or batched polling (`SKIP LOCKED`) and publishes them to the broker.
+An independent relay worker claims ready `PENDING` outbox records (`next_retry_at <= NOW()`) via Change Data Capture (CDC / Debezium) or batched polling (`FOR UPDATE SKIP LOCKED` with lease timestamps) and publishes them to the broker.
 
 ---
 
 ## 3. Idempotent Consumer Guarantee
 
-Because distributed message brokers provide "at least once" delivery, consumers must guarantee idempotency:
+Because distributed message brokers provide "at least once" delivery, consumers must guarantee idempotency atomically inside the consumer transaction (never check-then-insert with `SELECT` + `INSERT`, which races under duplicate deliveries):
 - Every event must carry a unique deterministic identifier (`id` or `eventId`).
-- Consumers must store processed event IDs in an `idempotency_keys` table inside the consumer database transaction.
-- If an event ID already exists in the table, the consumer acknowledges the message immediately and skips duplicate business execution.
+- Atomically claim the event ID first using a unique primary key constraint:
+  ```sql
+  INSERT INTO processed_events (event_id, processed_at)
+  VALUES ($1, NOW())
+  ON CONFLICT (event_id) DO NOTHING
+  RETURNING event_id;
+  ```
+- If 0 rows are returned, roll back/commit the no-op, acknowledge the message immediately, and skip duplicate business execution.
 
 ---
 
 ## 4. Poison Pill Handling via Dead Letter Queues (DLQ)
 
-When a consumer encounters unrecoverable deserialization or validation errors:
-- Route the failed message to a Dead Letter Queue (DLQ) after a capped retry threshold (e.g., 3 attempts).
-- Never block the consumer partition with an infinite retry loop.
+When a consumer or outbox relay encounters errors:
+- Route permanent deserialization, schema, or validation errors directly to the Dead Letter Queue (DLQ) without burning retries.
+- Retry transient failures with bounded exponential backoff + full jitter up to a capped threshold (e.g., 3-5 attempts), then route to the DLQ so a poison pill never blocks a partition.
 - Attach error metadata (`exception_class`, `failure_timestamp`, `retry_count`) to DLQ message headers.

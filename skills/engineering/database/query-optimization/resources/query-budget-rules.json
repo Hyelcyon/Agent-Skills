@@ -6,6 +6,8 @@
   },
   "indexPolicy": {
     "forbidSeqScanOnTablesOverRows": 50000,
-    "requireCoveringIndexesForHotPaths": true
+    "requireCoveringIndexesForHotPaths": true,
+    "maxDiskSortSpillBlocks": 0,
+    "maxHeapFetchesOnCoveringIndexPct": 5
   }
 }

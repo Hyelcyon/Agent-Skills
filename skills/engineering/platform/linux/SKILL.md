@@ -49,8 +49,8 @@ Senior systems engineering standards and operational runbooks for Linux environm
    set -euo pipefail
    IFS=$'\n\t'
    ```
-2. Trap signals deterministically: handle `EXIT`, `ERR`, and `INT` to remove temporary files and release lockfiles (`flock`).
-3. Always quote parameter expansions (`"$var"`) to prevent word splitting and globbing hazards.
+2. Trap signals deterministically: handle `EXIT`, `ERR`, and `INT` to remove temporary scratch files cleanly, **without unlinking active `flock` lockfiles** (deleting an open `flock` file lets concurrent invocations create a second inode and bypass mutual exclusion).
+3. Always quote parameter expansions (`"$var"`) to prevent word splitting and globbing hazards, and assign command substitutions before marking `readonly` (`val=$(cmd); readonly val`) so `set -e` captures subcommand failures.
 
 ### Phase 4: Resource Governance & Kernel Tuning
 1. Bound process memory and CPU consumption via systemd or cgroups v2:

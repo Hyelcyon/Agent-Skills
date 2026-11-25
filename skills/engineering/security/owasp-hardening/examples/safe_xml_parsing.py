@@ -1,5 +1,7 @@
-import defusedxml.ElementTree as DefusedET
 from xml.etree.ElementTree import Element
+
+import defusedxml.ElementTree as DefusedET
+
 
 def parse_xml_safely(raw_xml: str) -> Element:
     if len(raw_xml) > 1024 * 1024:

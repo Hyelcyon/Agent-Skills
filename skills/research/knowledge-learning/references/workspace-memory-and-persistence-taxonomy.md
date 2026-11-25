@@ -26,7 +26,7 @@ To avoid bloating context windows while ensuring reliable recall, learned knowle
 | Tier | Target Location | Criteria for Inclusion | Lifespan |
 | :--- | :--- | :--- | :--- |
 | **Tier 1: Global / Project Rules** | `AGENTS.md`, `rules/*.md` | Non-negotiable invariants affecting code generation, safety, or fundamental coding style across all turns. | Permanent / Standing |
-| **Tier 2: Architecture Decision Records** | `docs/adr/ADR-xxx.md` | Deliberate engineering choices between multiple viable alternatives with trade-offs. | Project Lifetime |
+| **Tier 2: Architecture Decision Records** | `docs/adr/ADR-NNNN.md` | Deliberate engineering choices between multiple viable alternatives with trade-offs. | Project Lifetime |
 | **Tier 3: Operational Knowledge Cards** | `~/.gemini/config/knowledge/` or `.gemini/knowledge/` | Specific environment quirks, CLI workarounds, test setup prerequisites, private API nuances. | On-Demand (Indexed) |
 | **Tier 4: Reusable Skill Assets** | `skills/<category>/<name>/` | Multi-step procedural runbooks requiring executable scripts, templates, and multi-file guidance. | System / User-Wide |
 
@@ -39,15 +39,15 @@ To unify knowledge storage across Google Antigravity, knowledge cards are centra
 ```text
 ~/.gemini/config/knowledge/ (or <workspace-root>/.gemini/knowledge/)
 ├── knowledge.json                       # Machine-readable registry (id, scope, weight, summary)
-├── README.md                            # Documentation and priority weights
+├── README.md                            # Optional human overview and weight conventions
 └── cards/
-    ├── KC-001-custom-build-pipeline.md  # Atomic markdown knowledge card
+    ├── KC-001-native-binding-tests.md   # Atomic markdown knowledge card
     ├── KC-002-test-db-isolation.md      # Atomic markdown knowledge card
     └── KC-003-private-npm-registry.md   # Atomic markdown knowledge card
 ```
 
 ### Machine-Readable Registry Format (`knowledge.json`)
-The `knowledge.json` file serves as the lightweight discovery layer allowing progressive disclosure without token bloat:
+The `knowledge.json` file serves as the lightweight discovery layer allowing progressive disclosure without token bloat (validated by [../resources/learning-taxonomy-schema.json](../resources/learning-taxonomy-schema.json)):
 
 ```json
 {
@@ -59,8 +59,12 @@ The `knowledge.json` file serves as the lightweight discovery layer allowing pro
       "category": "test_harness",
       "scope": "tests/**/*",
       "weight": "critical",
+      "status": "Active",
       "path": "cards/KC-001-native-binding-tests.md",
-      "summary": "Always invoke tests via pnpm test:native; never run raw vitest."
+      "summary": "Always invoke tests via pnpm test:native; never run raw vitest.",
+      "created_at": "2026-11-03",
+      "last_verified": "2026-11-03",
+      "verification_command": "pnpm test:native"
     }
   ]
 }

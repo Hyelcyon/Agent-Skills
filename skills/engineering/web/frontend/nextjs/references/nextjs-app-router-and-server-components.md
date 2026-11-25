@@ -38,7 +38,7 @@ export function InteractiveCounter() {
   const [count, setCount] = useState(0);
 
   return (
-    <button onClick={() => setCount(count + 1)}>
+    <button type="button" onClick={() => setCount((c) => c + 1)}>
       Count: {count}
     </button>
   );
@@ -61,7 +61,13 @@ export function CollapsibleSection({ children }: { children: React.ReactNode }) 
 
   return (
     <section>
-      <button onClick={() => setIsOpen(!isOpen)}>Toggle</button>
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        Toggle
+      </button>
       {isOpen && children}
     </section>
   );
@@ -73,7 +79,7 @@ Usage in a Server Component `page.tsx`:
 import { CollapsibleSection } from './CollapsibleSection';
 import { HeavyServerDataList } from './HeavyServerDataList';
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
   return (
     <CollapsibleSection>
       <HeavyServerDataList />

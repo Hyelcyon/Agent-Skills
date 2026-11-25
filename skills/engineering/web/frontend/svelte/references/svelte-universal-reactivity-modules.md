@@ -1,38 +1,68 @@
 # Svelte 5 Universal Reactivity Modules (`.svelte.ts`)
 
-Engineering standards for authoring shared reactive models, domain services, and reusable logic outside components.
+Engineering standards for authoring shared reactive models in `.svelte.ts` / `.svelte.js` modules, obeying ES module export constraints, and preventing SvelteKit SSR state leakage.
 
 ---
 
-## 1. The `.svelte.ts` Extension Standard
+## 1. The `.svelte.ts` Extension & Module Export Rule
 
-In Svelte 5, Runes can be executed anywhere in the codebase—not just inside `.svelte` Single File Components.
-To allow the Svelte compiler to process Runes in standard TypeScript files, name the file with the `.svelte.ts` extension.
+Runes (`$state`, `$derived`, `$effect`) compile inside `.svelte` files and TypeScript/JavaScript modules named `*.svelte.ts` / `*.svelte.js`.
+
+### ❌ Compiler Error (`state_invalid_export`): Exporting Reassigned `$state`
+```typescript
+// FAILS COMPILE: Cannot export state from a module if it is reassigned.
+export let count = $state(0);
+```
+Because ES module exports are live bindings, reassigning `count` externally cannot be tracked across module boundaries.
+
+### ✅ Valid Universal Export Patterns
+1. **Export a `const` object or class instance** and mutate its reactive properties (`count` property inside the class/object).
+2. **Export getter/factory functions** (`createCounterModel()`) encapsulating private `$state` bindings.
 
 ---
 
-## 2. Stateful Domain Model: Reactive Class Architecture
+## 2. CRITICAL: SvelteKit SSR State Leakage Prevention
 
-Define stateful business logic using standard TypeScript classes backed by `$state` and `$derived`:
+Node.js and Edge SSR runtimes keep `.svelte.ts` module variables alive across concurrent user requests.
+
+- **❌ Danger**: Instantiating `export const userCart = new CartManager()` at module top level in a SvelteKit app leaks User A's cart items into User B's SSR HTML response.
+- **✅ SSR-Safe Standard**: Instantiate per-user / per-request models inside root `+layout.svelte` (or a page component) and distribute them down the tree via `setContext` / `getContext`, which Svelte isolates cleanly per render request.
+
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script lang="ts">
+import { setContext } from 'svelte';
+import { CartManager } from '$lib/cart.svelte';
+
+setContext('cart', new CartManager());
+let { children } = $props();
+</script>
+
+{@render children()}
+```
+
+---
+
+## 3. Stateful Domain Model: Reactive Class Architecture
+
+Use `$state` and cached `$derived` class fields inside `.svelte.ts` classes:
 
 ```typescript
+export interface CartItem {
+  id: string;
+  price: number;
+  quantity: number;
+}
+
 export class CartManager {
-  private items = $state<Array<{ id: string; price: number; quantity: number }>>([]);
+  private items = $state<CartItem[]>([]);
   private discountPercentage = $state<number>(0);
 
-  get totalItems(): number {
-    return this.items.reduce((sum, item) => sum + item.quantity, 0);
-  }
+  totalItems = $derived(this.items.reduce((sum, item) => sum + item.quantity, 0));
+  rawSubtotal = $derived(this.items.reduce((sum, item) => sum + item.price * item.quantity, 0));
+  finalTotal = $derived(this.rawSubtotal * (1 - this.discountPercentage / 100));
 
-  get rawSubtotal(): number {
-    return this.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  }
-
-  get finalTotal(): number {
-    return this.rawSubtotal * (1 - this.discountPercentage / 100);
-  }
-
-  get currentItems(): ReadonlyArray<{ id: string; price: number; quantity: number }> {
+  get currentItems(): ReadonlyArray<CartItem> {
     return this.items;
   }
 
@@ -60,9 +90,9 @@ export class CartManager {
 
 ---
 
-## 3. Factory Function Composable Pattern
+## 4. Factory Function Composable Pattern
 
-Alternatively, encapsulate state and methods in a factory function closure:
+When returning a reactive object from a factory function, expose getters backed by `$state` and `$derived` so consumers read live reactive properties:
 
 ```typescript
 export function createCounterModel(initialValue: number = 0, step: number = 1) {
@@ -90,25 +120,4 @@ export function createCounterModel(initialValue: number = 0, step: number = 1) {
   };
 }
 ```
-
----
-
-## 4. Consuming Universal Modules in Svelte Components
-
-Consuming universal modules inside `.svelte` files requires zero extra subscription glue:
-
-```svelte
-<script lang="ts">
-import { CartManager } from './cart.svelte';
-
-const cart = new CartManager();
-</script>
-
-<div class="cart-widget">
-  <p>Items in Cart: {cart.totalItems}</p>
-  <p>Total: \${cart.finalTotal.toFixed(2)}</p>
-  <button onclick={() => cart.addItem('prod_1', 49.99, 1)}>Add Product</button>
-</div>
-```
-
-Any component reading `cart.totalItems` or `cart.finalTotal` automatically subscribes to underlying signal changes and updates reactively.
+Note: Component consumers read `counter.count` directly (`{counter.count}`) without any `$` store prefix.

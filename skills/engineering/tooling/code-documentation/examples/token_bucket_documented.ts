@@ -4,12 +4,11 @@ interface TokenBucketOptions {
 }
 
 /**
- * High-precision Token Bucket rate limiter for regulating inbound API requests.
+ * Lazy-refill Token Bucket rate limiter for inbound request throttling.
  *
  * @remarks
- * This implementation computes token replenishment lazily on each consumption call
- * rather than maintaining an active interval timer, eliminating background thread overhead.
- * Clock skew is handled by clamping elapsed time deltas to zero if system time shifts backward.
+ * Replenishment is calculated on demand at each {@link tryConsume} call instead of
+ * scheduling background interval timers, avoiding timer drift and idle wakeup overhead.
  */
 class TokenBucketRateLimiter {
   private readonly capacity: number;
@@ -18,16 +17,19 @@ class TokenBucketRateLimiter {
   private lastRefillTimestampMs: number;
 
   /**
-   * Initializes the rate limiter with full burst capacity.
+   * Initializes the rate limiter at full burst capacity.
    *
-   * @param options - Configuration defining maximum burst tokens and sustained refill rate.
-   *
-   * @throws {@link RangeError}
-   * Thrown if `capacity` or `refillRatePerSecond` is non-positive.
+   * @param options - Positive `capacity` burst ceiling and sustained `refillRatePerSecond`.
+   * @throws {@link RangeError} If `capacity` or `refillRatePerSecond` is not strictly positive.
    */
   constructor(options: TokenBucketOptions) {
-    if (options.capacity <= 0 || options.refillRatePerSecond <= 0) {
-      throw new RangeError('Bucket capacity and refill rate must be strictly positive');
+    if (
+      !Number.isFinite(options.capacity) ||
+      options.capacity <= 0 ||
+      !Number.isFinite(options.refillRatePerSecond) ||
+      options.refillRatePerSecond <= 0
+    ) {
+      throw new RangeError('Bucket capacity and refill rate must be finite positive numbers');
     }
 
     this.capacity = options.capacity;
@@ -37,19 +39,23 @@ class TokenBucketRateLimiter {
   }
 
   /**
-   * Attempts to consume a specified number of tokens from the bucket.
+   * Attempts to atomically consume `requestedTokens` from the current bucket balance.
    *
-   * @param requestedTokens - The count of tokens to deduct for the incoming operation.
-   * @returns `true` if sufficient tokens existed and were deducted; otherwise `false`.
+   * @param requestedTokens - Finite positive token count to deduct; defaults to `1`.
+   * @returns `true` if sufficient tokens were available and deducted; otherwise `false`.
+   * @throws {@link RangeError} If `requestedTokens` is non-finite or less than or equal to zero.
    */
   tryConsume(requestedTokens: number = 1): boolean {
+    if (!Number.isFinite(requestedTokens) || requestedTokens <= 0) {
+      throw new RangeError('requestedTokens must be a finite positive number');
+    }
+
     const now = performance.now();
 
-    // Guard against monotonicity violations caused by NTP clock synchronizations.
+    // Clamp to zero to guard against non-monotonic timer anomalies in virtualized or mocked clocks.
     const elapsedSeconds = Math.max(0, (now - this.lastRefillTimestampMs) / 1000);
     this.lastRefillTimestampMs = now;
 
-    // Fractional tokens accumulate smoothly without requiring millisecond timer ticks.
     this.currentTokens = Math.min(
       this.capacity,
       this.currentTokens + elapsedSeconds * this.refillRatePerSecond

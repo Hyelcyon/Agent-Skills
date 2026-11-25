@@ -1,4 +1,4 @@
-edition = "2021"
+edition = "2024"
 max_width = 100
 hard_tabs = false
 tab_spaces = 4
@@ -13,4 +13,3 @@ fn_single_line = false
 where_single_line = false
 use_field_init_shorthand = true
 use_try_shorthand = true
-group_imports = "StdExternalCrate"

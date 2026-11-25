@@ -39,28 +39,36 @@ When engineering Next.js applications, the agent must execute these 5 sequential
 2. Add `'use client'` only to leaf components requiring DOM interactivity (`useState`, event listeners).
 3. Pass Server Components as `children` into Client Component containers to preserve server execution.
 
-### Phase 3: Asynchronous Request API Resolution
-1. Always `await cookies()` and `await headers()` in Server Components.
-2. In Next.js 15 `page.tsx`, treat `params` and `searchParams` as Promises and `await` them before reading properties.
-3. In Client Components, unwrap `params` promises via React 19 `use(params)`.
+### Phase 3: Asynchronous Request & Parallel Data Resolution
+1. Always `await cookies()` and `await headers()` in Server Components; in `page.tsx`, treat `params` and `searchParams` as Promises and `await` them (or `use(params)` in Client Components).
+2. Parallelize independent fetches with `Promise.all()` or stream slow panels inside distinct `<Suspense>` boundaries (`next/dynamic` for heavy client-only widgets), and deduplicate shared server lookups with `React.cache()`.
+3. Offload non-blocking telemetry, webhook logs, or cleanup after response streaming via `after()` (`next/server`) instead of delaying page TTFB.
 
 ### Phase 4: Server Action Mutation Standard
 1. Author mutations in dedicated `'use server'` files.
-2. Validate form input using strict schemas (e.g. Zod).
-3. Invalidate stale caches immediately upon success using `revalidatePath()` or `revalidateTag()`.
+2. Authenticate the caller (`await cookies()` / session lookup) and verify ownership/tenant membership BEFORE mutating state.
+3. Validate form input using strict schemas (e.g. Zod `safeParse`) and check downstream `response.ok`.
+4. Invalidate stale caches immediately upon success using `revalidatePath()` or `revalidateTag()`.
 
 ### Phase 5: PPR and Build Verification
-1. Enable `experimental_ppr = true` for hybrid routes.
+1. Enable `experimental_ppr = true` for hybrid routes (requires `experimental.ppr: 'incremental'` in `next.config`; note Next.js 15 defaults `fetch()` and `GET` Route Handlers to uncached unless opted in via `force-cache` / `revalidate` / `dynamic = 'force-static'`).
 2. Wrap dynamic user-specific widgets in `<Suspense fallback={<Skeleton />}>` to keep the shell static.
-3. Verify production compilation via `next build`.
+3. Verify generated route types, strict TypeScript checking, production build, and user-centric E2E flows (`getByRole`, keyboard nav) when Playwright is configured:
+   ```bash
+   npx next typegen && npx tsc --noEmit && npm run build
+   ```
 
 ---
 
-## 2. Critical Anti-Patterns to Avoid
-- ❌ Reading `cookies()` or `headers()` synchronously without `await`.
-- ❌ Mutating cookies during component render cycles (must be in Server Actions).
+## 2. Fatal Mistakes & Critical Anti-Patterns to Avoid
+- ❌ Reading `cookies()`, `headers()`, `params`, or `searchParams` synchronously without `await` (or `use()` in Client Components).
+- ❌ Relying on Next.js `middleware.ts` cookie existence as the sole authorization gate (middleware is an optimistic check only; always re-verify auth/authz in Server Components, Server Actions, and Route Handlers).
+- ❌ Skipping authentication and server-side ownership/tenant authorization checks inside `'use server'` Server Actions (Server Actions are public HTTP POST endpoints).
+- ❌ Assuming `fetch()` or `GET` Route Handlers are cached by default in Next.js 15 (they default to uncached unless explicitly configured).
+- ❌ Interpolating unvalidated cookie or `FormData` identifiers into backend URLs or `revalidatePath`.
+- ❌ Mutating cookies during component render cycles (must be in Server Actions or Route Handlers).
 - ❌ Declaring `'use client'` on root layouts or top-level pages.
-- ❌ Leaking server database or secret modules into client component bundles.
+- ❌ Leaking server database or secret modules into client component bundles (guard with `import 'server-only'`).
 - ❌ Navigating with raw HTML `<a>` tags instead of `<Link>`.
 
 ## References & Resources

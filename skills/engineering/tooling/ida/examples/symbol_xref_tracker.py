@@ -1,6 +1,7 @@
-import ida_xref
 import ida_funcs
 import ida_name
+import ida_xref
+
 
 def collect_incoming_xrefs(target_ea: int) -> list[dict[str, str]]:
     callers: list[dict[str, str]] = []
@@ -19,11 +20,12 @@ def collect_incoming_xrefs(target_ea: int) -> list[dict[str, str]]:
 
     return callers
 
-def print_xrefs_for_name(symbol_name: str) -> None:
+def get_xrefs_for_name(symbol_name: str) -> list[dict[str, str]]:
     ea = ida_name.get_name_ea(ida_xref.BADADDR, symbol_name)
     if ea == ida_xref.BADADDR:
-        return
+        return []
 
     results = collect_incoming_xrefs(ea)
     for item in results:
-        pass
+        print(f"{item['call_address']} <- {item['caller_function']}")
+    return results

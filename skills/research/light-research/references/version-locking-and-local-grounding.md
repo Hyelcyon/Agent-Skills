@@ -22,7 +22,7 @@ Before executing search queries, inspect the relevant project files:
 | Ecosystem | Manifest File | Lockfile | Version Inspection Command |
 | :--- | :--- | :--- | :--- |
 | **Node / TypeScript** | `package.json` | `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` | `npm ls <package> --depth=0` or read `package.json` |
-| **Python** | `pyproject.toml`, `requirements.txt` | `poetry.lock`, `Pipfile.lock`, `pdm.lock` | `pip show <package>` or inspect lockfile |
+| **Python** | `pyproject.toml`, `requirements.txt` | `uv.lock`, `poetry.lock`, `Pipfile.lock`, `pdm.lock` | `pip show <package>` or inspect lockfile |
 | **Rust** | `Cargo.toml` | `Cargo.lock` | `cargo pkgid <package>` or read `Cargo.lock` |
 | **Go** | `go.mod` | `go.sum` | `go list -m <package>` or read `go.mod` |
 | **Java / JVM** | `pom.xml`, `build.gradle.kts` | `gradle.lockfile` | Inspect dependency block in build file |

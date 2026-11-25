@@ -1,7 +1,6 @@
 --!strict
 
 local EntityService = {}
-EntityService.__index = EntityService
 
 export type Entity = {
     Id: string,

@@ -1,13 +1,15 @@
 {
   "rules": {
     "requirePrimaryKey": true,
+    "forbidUuidV4PrimaryKeys": true,
+    "requireTimezoneAwareTimestamps": true,
     "requireTimestamps": ["created_at", "updated_at"],
     "forbidPluralTableNames": false,
     "requireForeignKeyIndexes": true,
     "namingConventions": {
-      "tables": "^[a-z_]+$",
-      "columns": "^[a-z_]+$",
-      "foreignKeys": "^fk_[a-z_]+$"
+      "tables": "^[a-z][a-z0-9_]*$",
+      "columns": "^[a-z][a-z0-9_]*$",
+      "foreignKeys": "^fk_[a-z0-9_]+$"
     }
   }
 }

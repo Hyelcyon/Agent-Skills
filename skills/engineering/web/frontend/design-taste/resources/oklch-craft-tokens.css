@@ -1,0 +1,53 @@
+:root {
+  color-scheme: light dark;
+
+  --surface-canvas: light-dark(oklch(0.985 0.005 85), oklch(0.125 0.008 255));
+  --surface-subtle: light-dark(oklch(0.958 0.007 85), oklch(0.155 0.010 255));
+  --surface-elevated: light-dark(oklch(0.996 0.002 85), oklch(0.185 0.011 255));
+
+  --ink-primary: light-dark(oklch(0.185 0.012 255), oklch(0.952 0.004 255));
+  --ink-secondary: light-dark(oklch(0.44 0.012 255), oklch(0.71 0.010 255));
+  --ink-muted: light-dark(oklch(0.56 0.010 255), oklch(0.56 0.010 255));
+
+  --border-hairline: light-dark(oklch(0.22 0.012 255 / 0.11), oklch(0.98 0.004 255 / 0.09));
+  --border-strong: light-dark(oklch(0.22 0.012 255 / 0.22), oklch(0.98 0.004 255 / 0.18));
+  --specular-top: light-dark(oklch(1 0 0 / 0.6), oklch(1 0 0 / 0.07));
+
+  --accent-primary: light-dark(oklch(0.54 0.19 25), oklch(0.68 0.17 28));
+  --accent-ink: oklch(0.99 0.004 85);
+  --accent-tint: light-dark(oklch(0.54 0.19 25 / 0.10), oklch(0.68 0.17 28 / 0.14));
+
+  --font-display: "Instrument Serif", "Newsreader", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", "Pretendard Variable", "Pretendard", sans-serif;
+  --font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-heading: clamp(1.75rem, 1.25rem + 1.8vw, 2.75rem);
+  --text-display: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
+  --measure-prose: 66ch;
+
+  --space-pad: 0.75rem;
+  --radius-inner: 0.5rem;
+  --radius-outer: calc(var(--radius-inner) + var(--space-pad));
+
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-snappy: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-micro: 160ms;
+  --duration-enter: 220ms;
+}
+
+.tabular-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-micro: 1ms;
+    --duration-enter: 1ms;
+  }
+}

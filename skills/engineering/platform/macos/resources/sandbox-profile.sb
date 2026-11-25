@@ -1,4 +1,4 @@
-;; Enterprise macOS Darwin Sandbox Profile
+;; Enterprise macOS Darwin Sandbox Profile (legacy local CLI isolation only; deprecated by Apple for App distribution)
 ;; Test via: sandbox-exec -f sandbox-profile.sb /path/to/binary
 
 (version 1)
@@ -9,18 +9,17 @@
 (allow process-exec)
 (allow signal (target self))
 
-;; Permit local network access for TCP client connections
-(allow network-outbound (to-addr (literal "localhost")))
-(allow network-outbound (remote ip))
+;; Permit loopback-only outbound TCP connections (replace with explicit remote target if external APIs are needed)
+(allow network-outbound (remote ip "localhost:*"))
 
-;; Whitelist read-only access to standard system libraries
+;; Allowlist read-only access to standard system libraries
 (allow file-read*
     (subpath "/usr/lib")
     (subpath "/usr/share")
     (subpath "/System/Library")
     (subpath "/opt/homebrew"))
 
-;; Whitelist application storage read/write
+;; Allowlist application storage read/write
 (allow file-read* file-write*
     (subpath "/var/log/enterprise")
     (subpath "/Library/Application Support/Enterprise"))

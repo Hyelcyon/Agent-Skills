@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CodexOpenAIYaml",
+  "description": "Schema for OpenAI Codex skill sidecar configuration at agents/openai.yaml.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "display_name": { "type": "string", "minLength": 1 },
+        "short_description": { "type": "string", "minLength": 1 },
+        "icon_small": { "type": "string", "minLength": 1 },
+        "icon_large": { "type": "string", "minLength": 1 },
+        "brand_color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "default_prompt": { "type": "string", "minLength": 1 }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allow_implicit_invocation": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "value"],
+            "properties": {
+              "type": { "type": "string", "minLength": 1 },
+              "value": { "type": "string", "minLength": 1 },
+              "description": { "type": "string" },
+              "transport": { "type": "string" },
+              "command": { "type": "string" },
+              "url": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

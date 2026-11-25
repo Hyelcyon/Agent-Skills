@@ -26,7 +26,7 @@ export class RbacPermissionGate {
   }
 
   assertTenantAccess(user: UserContext, targetTenantId: string): void {
-    if (user.tenantId !== targetTenantId) {
+    if (!user.tenantId || !targetTenantId || user.tenantId !== targetTenantId) {
       throw new Error(`Unauthorized cross-tenant access attempt by user ${user.userId}`);
     }
   }

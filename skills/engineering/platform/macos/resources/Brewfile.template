@@ -1,9 +1,6 @@
 # Enterprise Declarative Brewfile
 # Install or verify via: brew bundle check || brew bundle install
 
-tap "homebrew/bundle"
-tap "homebrew/core"
-
 # Developer CLI Essentials
 brew "git"
 brew "jq"

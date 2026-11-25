@@ -127,6 +127,7 @@ When executing non-trivial engineering tasks within a covered domain, proactivel
   - Svelte: `skills/engineering/web/frontend/svelte` (Svelte 5, Runes $state/$derived/$effect, Snippets)
   - Angular: `skills/engineering/web/frontend/angular` (Angular 19+, Signals, Deferrable Views, standalone)
   - State Architecture: `skills/engineering/web/frontend/state-management` (TanStack Query, Zustand)
+  - Design Taste & Craft: `skills/engineering/web/frontend/design-taste` (Art direction, anti-slop typography, OKLCH, Taste Dials, critique/polish)
   - UI/UX & Motion: `skills/engineering/web/frontend/ui-ux` (View Transitions, WCAG 2.2 AA)
   - React Bits: `skills/engineering/web/frontend/react-bits` (Animated UI, 3D backgrounds, text effects, micro-interactions)
   - Web Performance: `skills/engineering/web/frontend/performance` (CWV: LCP, INP, CLS, speculation rules)
@@ -163,6 +164,12 @@ When executing non-trivial engineering tasks within a covered domain, proactivel
   - Fast Triage & Multi-Hop Search: `skills/research/light-research` (Multi-hop search, breaking-change falsification, API contract & error verification)
   - In-Depth Spikes: `skills/research/deep-research` (Multi-vector spikes, gap-detection loops, Pugh matrix, ADRs)
   - Continuous Learning: `skills/research/knowledge-learning` (Workspace memory, user corrections /learn, post-mortems)
+- **Skill Governance & Craftsmanship**:
+  - Antigravity Skills Manager: `skills/misc/antigravity-skills-manager` (Antigravity App `skills.json`, frontmatter schemas, manual audits)
+  - Claude & Codex Managers: `skills/misc/claude-skills-manager`, `skills/misc/codex-skills-manager` (Claude frontmatter controls, Codex `agents/openai.yaml`)
+  - Senior Engineering Standard: `skills/misc/senior` (Minimal coherent diffs, root-cause tracing, YAGNI, empirical proof)
+  - Software Maintenance: `skills/misc/maintenance` (Safe dependency upgrades, characterization tests, dead-code pruning, tech-debt triage)
+  - Antigravity Built-in Guides: `antigravity-guide`, `agy-customizations`, `plugin` (IDE/CLI workflows, customization discovery, plugin packaging)
 
 ### 2. Operational Discipline
 - **5-Phase Agent Operational Protocol**: Execute work in disciplined order:
@@ -173,4 +180,4 @@ When executing non-trivial engineering tasks within a covered domain, proactivel
   - Phase 5: Transparent Completion Proof (real command outputs)
 - **Centralized Knowledge Hub**: When learning from user corrections (`/learn`) or post-mortems, codify knowledge into `~/.gemini/config/knowledge/` (or workspace `.gemini/knowledge/`) as machine-readable JSON entries (`knowledge.json`) and atomic Markdown cards (`cards/`). Skills and `AGENTS.md` draw domain weights and invariants from this centralized hub.
 - **Modular Asset Reuse**: Before writing boilerplate code or configuration files from memory, inspect the activated skill's `resources/` for production-grade starter templates and `examples/` for verified patterns.
-- **Strict Zero Inline Comments**: Enforce [`rules/senior-developer-rules.md`](./rules/senior-developer-rules.md)—strictly prohibit trivial/restating inline comments across all code changes.
+- **Strict Zero Inline Comments**: Enforce [`rules/senior-developer-rules.md`](rules/senior-developer-rules.md)—strictly prohibit trivial/restating inline comments across all code changes.

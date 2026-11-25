@@ -12,19 +12,25 @@ function observeCoreWebVitals(onReport: (report: CoreWebVitalsReport) => void): 
   };
 
   const observers: PerformanceObserver[] = [];
+  if (typeof PerformanceObserver === 'undefined') {
+    return () => {};
+  }
 
-  try {
+  const supported = PerformanceObserver.supportedEntryTypes ?? [];
+
+  if (supported.includes('largest-contentful-paint')) {
     const lcpObserver = new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
       const lastEntry = entries[entries.length - 1];
+      if (!lastEntry) return;
       currentReport.lcpMs = lastEntry.startTime;
       onReport({ ...currentReport });
     });
     lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
     observers.push(lcpObserver);
-  } catch (err) {}
+  }
 
-  try {
+  if (supported.includes('layout-shift')) {
     const clsObserver = new PerformanceObserver((entryList) => {
       for (const entry of entryList.getEntries()) {
         const layoutShift = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number };
@@ -36,7 +42,7 @@ function observeCoreWebVitals(onReport: (report: CoreWebVitalsReport) => void): 
     });
     clsObserver.observe({ type: 'layout-shift', buffered: true });
     observers.push(clsObserver);
-  } catch (err) {}
+  }
 
   return () => {
     for (const observer of observers) {

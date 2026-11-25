@@ -63,13 +63,31 @@ import { use } from 'react';
 export function ClientProfileBadge({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params);
 
-  return <span class="badge">User: {username}</span>;
+  return <span className="badge">User: {username}</span>;
 }
 ```
 
 ---
 
-## 4. Cookie Mutation Invariants
+## 4. Dynamic Route Handlers (`route.ts`)
+
+Route Handlers with dynamic segments also receive `params` as a `Promise`:
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ orgId: string }> }
+) {
+  const { orgId } = await params;
+  return NextResponse.json({ orgId });
+}
+```
+
+---
+
+## 5. Cookie Mutation Invariants
 
 In Server Components, `cookies()` is read-only.
 Attempting to invoke `cookieStore.set()` or `cookieStore.delete()` during Server Component rendering throws a runtime error because HTTP response headers have already begun streaming to the browser.

@@ -81,10 +81,11 @@ Pre-measured and verified diagram canvases for immediate adaptation across syste
                            ▼
                   /─────────────────\
                  <   Is Authorized?  >
-                  \─────────────────/
-                    │             │
-                [No]│             │[Yes]
-                    ▼             ▼
+                  \────────┬────────/
+                           │
+               [No]        │        [Yes]
+           ┌───────────────┴───────────────┐
+           ▼                               ▼
 ┌─────────────────────┐         ┌─────────────────────┐
 │    Reject (401)     │         │   Forward Handler   │
 └─────────────────────┘         └─────────────────────┘
@@ -95,12 +96,12 @@ Pre-measured and verified diagram canvases for immediate adaptation across syste
 ## 5. Sequence / Message Flow Lifeline
 
 ```text
-Client                  Gateway                 Service
-  │                        │                       │
-  │─── POST /checkout ────►│                       │
-  │                        │──── Process Order ───►│
-  │                        │                       │
-  │                        │◄─── Order Settled ────│
-  │◄── 200 OK (Invoice) ───│                       │
-  │                        │                       │
+[Client]                [Gateway]               [Service]
+   │                        │                       │
+   │──── POST /checkout ───►│                       │
+   │                        │──── Process Order ───►│
+   │                        │                       │
+   │                        │◄─── Order Settled ────│
+   │◄─── 200 OK (Invoice) ──│                       │
+   │                        │                       │
 ```

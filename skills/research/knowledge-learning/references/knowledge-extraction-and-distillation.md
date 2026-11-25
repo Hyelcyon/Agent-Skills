@@ -56,6 +56,6 @@ Distill findings into an independent, single-topic card:
 
 ### Step 4: Invariant Codification
 Translate the atomic card into a non-negotiable behavioral rule:
-- If it applies workstation-wide, propose updating `AGENTS.md` or global rules.
-- If it applies to this project only, record it in `.gemini/knowledge/` or project `AGENTS.md`.
-- If it defines an architectural decision, codify an Architecture Decision Record (ADR).
+- If it applies workstation-wide, propose updating `AGENTS.md` or global rules (`~/.gemini/config/knowledge/knowledge.json` + `cards/`).
+- If it applies to this project only, record it in `.gemini/knowledge/cards/` (indexed in `.gemini/knowledge/knowledge.json`) or project `AGENTS.md`.
+- If it defines an architectural decision, codify an Architecture Decision Record (`docs/adr/ADR-NNNN.md`).

@@ -6,10 +6,10 @@ A technical guide to Next.js 15 build performance with Turbopack, Core Web Vital
 
 ## 1. Turbopack Build Engine Standards
 
-Next.js 15 uses Turbopack as the default development bundler:
-- Up to 76.7% faster local server startup compared to Webpack.
-- Up to 96.3% faster code updates with Fast Refresh.
-- Enforce strict import cleanliness to maximize Turbopack's incremental tree compilation.
+Next.js 15 stabilizes Turbopack for development (`next dev --turbopack`):
+- Performs incremental function-level and module-graph compilation, bundling only routes visited during development.
+- Keeps Fast Refresh updates scoped to modified modules rather than rebuilding the full Webpack graph.
+- Enforce strict import cleanliness (avoid barrel re-exports of large component trees) to maximize incremental compilation efficiency.
 
 ---
 
@@ -22,14 +22,14 @@ import Image from 'next/image';
 
 export function ProductHeroBanner() {
   return (
-    <div class="relative w-full h-[500px]">
+    <div className="relative w-full h-[500px]">
       <Image
         src="/images/hero-banner.webp"
         alt="Featured Product Catalog"
         fill
         priority
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
-        class="object-cover"
+        className="object-cover"
       />
     </div>
   );
@@ -46,6 +46,8 @@ export const inter = Inter({
   display: 'swap',
   variable: '--font-inter'
 });
+
+// Apply `className={inter.variable}` on `<html>` in `app/layout.tsx`
 ```
 
 ---

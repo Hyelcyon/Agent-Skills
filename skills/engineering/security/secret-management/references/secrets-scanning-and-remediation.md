@@ -34,12 +34,11 @@ Never assume a leaked secret was not observed. Automated internet crawlers scrap
 ### Phase 2: Git History Sanitization (Priority 2)
 Reverting a commit (`git revert`) or pushing an edit in a new commit does **NOT** delete the secret; the plaintext secret remains visible in commit history.
 
-Use `git-filter-repo` to permanently erase the secret from all branches and tags:
+Only after revoking compromised credentials and obtaining explicit repository/team authorization, use `git-filter-repo` with a replacements file to erase the secret from branches and tags before coordinating history force-updates:
 
 ```bash
-git filter-repo --replace-text <(echo "leaked-secret-string-value==>REDACTED")
-git push origin --force --all
-git push origin --force --tags
+# bash
+git filter-repo --replace-text replacements.txt
 ```
 
 Instruct all team members to re-clone the repository or rebase local branches onto the sanitized upstream history.

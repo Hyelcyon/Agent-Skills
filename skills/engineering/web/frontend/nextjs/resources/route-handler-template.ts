@@ -6,12 +6,25 @@ interface StandardApiResponse<T> {
   requestId: string;
 }
 
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 100;
+
 export async function GET(request: NextRequest): Promise<NextResponse<StandardApiResponse<unknown>>> {
   const requestId = crypto.randomUUID();
 
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const limit = parseInt(searchParams.get('limit') || '10', 10);
+    const rawLimit = request.nextUrl.searchParams.get('limit');
+    let limit = DEFAULT_LIMIT;
+    if (rawLimit !== null) {
+      const parsed = Number(rawLimit);
+      if (!Number.isInteger(parsed) || parsed < 1 || parsed > MAX_LIMIT) {
+        return NextResponse.json(
+          { error: `Invalid limit parameter; expected integer between 1 and ${MAX_LIMIT}`, requestId },
+          { status: 400 }
+        );
+      }
+      limit = parsed;
+    }
 
     const payload = {
       items: [],
@@ -29,9 +42,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<StandardAp
       }
     );
   } catch (err) {
+    console.error(`[GET route-handler] requestId=${requestId}`, err);
     return NextResponse.json(
       {
-        error: err instanceof Error ? err.message : 'Internal Server Error',
+        error: 'Internal Server Error',
         requestId
       },
       { status: 500 }

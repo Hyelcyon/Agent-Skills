@@ -44,6 +44,6 @@ Standard string comparison operators (`===`, `!=`, `strcmp`, `==`) return `false
 Production session cookies must strictly mandate:
 - `HttpOnly`: Prevents client-side JavaScript from accessing the session token via `document.cookie` (defense-in-depth against session theft via XSS).
 - `Secure`: Ensures cookies are transmitted only across encrypted HTTPS connections.
-- `SameSite=Strict`: Blocks cross-site request leakage.
-- `Path=/`: Restricts scope to application root.
+- `SameSite=Strict` (or `SameSite=Lax` when cross-site OAuth 2.1 top-level redirects must return session continuity): Blocks cross-site CSRF leakage.
+- `Path=/`: Restricts scope to application root (mandatory alongside omitting `Domain` for `__Host-` prefixed cookies).
 - `Max-Age` / `Expires`: Enforce bounded session lifetimes with idle timeouts.

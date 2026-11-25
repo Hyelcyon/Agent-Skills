@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -63,7 +64,7 @@ func (s *Server) registerRoutes() {
 		id := r.PathValue("id")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = fmt.Fprintf(w, `{"id":"%s"}`, id)
+		_ = json.NewEncoder(w).Encode(map[string]string{"id": id})
 	})
 }
 

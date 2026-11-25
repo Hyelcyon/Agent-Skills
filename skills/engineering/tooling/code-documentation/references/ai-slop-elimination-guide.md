@@ -107,7 +107,7 @@ Document domain constraints, nullability, partitioning rules, and thrown errors:
  * @throws {TenantPartitionMismatchError} If `id` belongs to an external tenant shard.
  */
 async function getUser(id: string, tenant: Tenant): Promise<User | null> {
-  return await db.users.find(id);
+  return await db.users.find({ id, tenantId: tenant.id });
 }
 ```
 

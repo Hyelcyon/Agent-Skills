@@ -1,12 +1,12 @@
 # SvelteKit 2 and Svelte 5 Full-Stack Architecture
 
-Engineering specifications for modern SvelteKit 2 applications leveraging Svelte 5 Runes, server load functions, and form actions.
+Engineering specifications for SvelteKit 2 applications using Svelte 5 Runes, `$app/state`, server load functions, Form Actions, and SSR state isolation.
 
 ---
 
 ## 1. Page Component Data Binding with Runes
 
-In SvelteKit 2 with Svelte 5, incoming server data and form action responses are bound using `$props()`:
+Incoming server `data` and form action `form` props are bound via `$props()`. Use standard HTML `value` (or `bind:value`) on `<input>`, not React's `defaultValue` prop:
 
 ```svelte
 <script lang="ts">
@@ -25,7 +25,7 @@ let isSubmitting = $state(false);
 <h1>{data.workspace.name}</h1>
 
 {#if form?.error}
-  <div class="alert danger">{form.error}</div>
+  <div class="alert danger" role="alert">{form.error}</div>
 {/if}
 
 <form
@@ -40,7 +40,7 @@ let isSubmitting = $state(false);
   }}
 >
   <label for="name">Workspace Name</label>
-  <input id="name" name="name" type="text" defaultValue={data.workspace.name} />
+  <input id="name" name="name" type="text" value={data.workspace.name} required />
   <button type="submit" disabled={isSubmitting}>
     {isSubmitting ? 'Saving...' : 'Save Changes'}
   </button>
@@ -51,7 +51,7 @@ let isSubmitting = $state(false);
 
 ## 2. Server Load Functions: `+page.server.ts`
 
-Fetch server data securely without exposing database credentials to the client:
+In SvelteKit 2, `error()` and `redirect()` throw internally and have return type `never`. Call `error(401, ...)` directly without `throw`, and never swallow `error()`/`redirect()` inside broad `try/catch` blocks:
 
 ```typescript
 import type { PageServerLoad } from './$types';
@@ -60,12 +60,12 @@ import { error } from '@sveltejs/kit';
 export const load: PageServerLoad = async ({ params, locals }) => {
   const user = locals.user;
   if (!user) {
-    throw error(401, 'Unauthorized');
+    error(401, 'Unauthorized');
   }
 
   const workspace = await locals.db.getWorkspace(params.workspaceId);
   if (!workspace) {
-    throw error(404, 'Workspace not found');
+    error(404, 'Workspace not found');
   }
 
   return {
@@ -82,7 +82,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 ## 3. Server Form Actions: Mutating State
 
-Form Actions handle server-side mutations cleanly with progressive enhancement:
+Form Actions execute server mutations with progressive enhancement even before client JS hydrates:
 
 ```typescript
 import type { Actions } from './$types';
@@ -101,7 +101,7 @@ export const actions: Actions = {
       return fail(400, { error: 'Workspace name is required' });
     }
 
-    await locals.db.updateWorkspaceName(name);
+    await locals.db.updateWorkspaceName(name.trim());
 
     return { success: true };
   }
@@ -111,6 +111,8 @@ export const actions: Actions = {
 ---
 
 ## 4. Architectural Rules for SvelteKit
-- Never import server-only modules (`$env/static/private`, database clients) inside `+page.svelte` or `.svelte` components.
-- Use `use:enhance` on all `<form>` elements to allow client-side AJAX updates while maintaining full fallback functionality if JavaScript fails to load.
-- Avoid passing massive un-pruned database models across the server-client boundary. Return only the fields needed by the template.
+
+- **Prevent SSR Cross-Request State Leakage**: Never store user, session, or request-specific `$state` in module-level variables inside `.svelte.ts` files. Pass server state via `load` functions/`locals` and instantiate shared client models per request using `setContext`/`getContext` in root `+layout.svelte`.
+- **Keep Server Secrets Server-Only**: Never import `$env/static/private`, `$env/dynamic/private`, or database clients inside `.svelte`, `+page.ts`, or `+layout.ts` files (use `+page.server.ts` or `*.server.ts`).
+- **Use `$app/state` Over `$app/stores`**: Access `page.url`, `page.data`, and `navigating` from `$app/state` cleanly with Runes.
+- **Prune Returned Payloads**: Return only fields actually needed by the template to minimize serialized hydration HTML payloads.

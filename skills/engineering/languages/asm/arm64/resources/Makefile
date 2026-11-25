@@ -3,7 +3,8 @@ CC = $(CROSS_COMPILE)gcc
 AS = $(CROSS_COMPILE)as
 LD = $(CROSS_COMPILE)ld
 
-CFLAGS = -Wall -Wextra -Werror -pedantic -O3 -fPIE -z noexecstack
+CFLAGS = -Wall -Wextra -Werror -pedantic -O3 -fPIE
+LDFLAGS = -Wl,-z,noexecstack
 ASFLAGS = --fatal-warnings -march=armv8-a+simd
 
 SRC_C = $(wildcard src/*.c)
@@ -19,7 +20,7 @@ all: $(TARGET)
 
 $(TARGET): $(ALL_OBJS)
 	@mkdir -p bin
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

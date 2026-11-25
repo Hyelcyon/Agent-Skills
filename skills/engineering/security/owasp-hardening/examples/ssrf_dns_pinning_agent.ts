@@ -1,45 +1,45 @@
 import { lookup } from 'node:dns/promises';
-import { isIP } from 'node:net';
-import https from 'node:https';
 import http from 'node:http';
+import https from 'node:https';
+import { BlockList, isIP } from 'node:net';
 
-const BLOCKED_IPV4_PREFIXES: readonly string[] = [
-  '0.',
-  '10.',
-  '127.',
-  '169.254.',
-  '172.16.',
-  '172.17.',
-  '172.18.',
-  '172.19.',
-  '172.20.',
-  '172.21.',
-  '172.22.',
-  '172.23.',
-  '172.24.',
-  '172.25.',
-  '172.26.',
-  '172.27.',
-  '172.28.',
-  '172.29.',
-  '172.30.',
-  '172.31.',
-  '192.168.'
-];
+const MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 
-function isPublicIp(ip: string): boolean {
-  if (ip === '::1' || ip === '0.0.0.0') {
-    return false;
+const RESTRICTED_IP_BLOCKLIST = new BlockList();
+RESTRICTED_IP_BLOCKLIST.addSubnet('0.0.0.0', 8, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('10.0.0.0', 8, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('100.64.0.0', 10, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('127.0.0.0', 8, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('169.254.0.0', 16, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('172.16.0.0', 12, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('192.0.0.0', 24, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('192.0.2.0', 24, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('192.168.0.0', 16, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('198.18.0.0', 15, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('198.51.100.0', 24, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('203.0.113.0', 24, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('224.0.0.0', 4, 'ipv4');
+RESTRICTED_IP_BLOCKLIST.addSubnet('240.0.0.0', 4, 'ipv4');
+
+RESTRICTED_IP_BLOCKLIST.addAddress('::', 'ipv6');
+RESTRICTED_IP_BLOCKLIST.addAddress('::1', 'ipv6');
+RESTRICTED_IP_BLOCKLIST.addSubnet('::ffff:0:0', 96, 'ipv6');
+RESTRICTED_IP_BLOCKLIST.addSubnet('64:ff9b::', 96, 'ipv6');
+RESTRICTED_IP_BLOCKLIST.addSubnet('fc00::', 7, 'ipv6');
+RESTRICTED_IP_BLOCKLIST.addSubnet('fe80::', 10, 'ipv6');
+RESTRICTED_IP_BLOCKLIST.addSubnet('ff00::', 8, 'ipv6');
+
+function isPublicIp(rawIp: string): boolean {
+  const zoneIndex = rawIp.indexOf('%');
+  const ip = zoneIndex === -1 ? rawIp : rawIp.slice(0, zoneIndex);
+  const family = isIP(ip);
+  if (family === 4) {
+    return !RESTRICTED_IP_BLOCKLIST.check(ip, 'ipv4');
   }
-  if (ip.startsWith('fc') || ip.startsWith('fd') || ip.startsWith('fe80')) {
-    return false;
+  if (family === 6) {
+    return !RESTRICTED_IP_BLOCKLIST.check(ip, 'ipv6');
   }
-  for (const prefix of BLOCKED_IPV4_PREFIXES) {
-    if (ip.startsWith(prefix)) {
-      return false;
-    }
-  }
-  return true;
+  return false;
 }
 
 interface FetchResult {
@@ -55,7 +55,6 @@ async function safeHttpsFetch(targetUrl: string): Promise<FetchResult> {
   }
 
   const resolved = await lookup(parsed.hostname, { all: true });
-
   if (resolved.length === 0) {
     throw new Error('DNS resolution yielded no addresses');
   }
@@ -66,14 +65,18 @@ async function safeHttpsFetch(targetUrl: string): Promise<FetchResult> {
     }
   }
 
-  const pinnedIp = resolved[0].address;
+  const pinned = resolved[0];
+  if (!pinned) {
+    throw new Error('No verified address resolved');
+  }
 
   return new Promise<FetchResult>((resolve, reject) => {
     const req = https.request(
       {
-        host: pinnedIp,
+        host: pinned.address,
+        family: pinned.family,
         port: parsed.port || 443,
-        path: parsed.pathname + parsed.search,
+        path: `${parsed.pathname}${parsed.search}`,
         method: 'GET',
         servername: parsed.hostname,
         headers: {
@@ -83,15 +86,30 @@ async function safeHttpsFetch(targetUrl: string): Promise<FetchResult> {
         timeout: 5000
       },
       (res: http.IncomingMessage) => {
-        let body = '';
-        res.setEncoding('utf8');
-        res.on('data', (chunk: string | Buffer) => {
-          body += chunk.toString();
+        const statusCode = res.statusCode ?? 500;
+        if (statusCode >= 300 && statusCode < 400) {
+          req.destroy();
+          reject(new Error(`Blocked unvalidated redirect status ${statusCode}`));
+          return;
+        }
+
+        const chunks: Buffer[] = [];
+        let totalBytes = 0;
+
+        res.on('data', (chunk: Buffer | string) => {
+          const buf = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
+          totalBytes += buf.length;
+          if (totalBytes > MAX_RESPONSE_BYTES) {
+            req.destroy(new Error(`Response exceeded ${MAX_RESPONSE_BYTES} byte limit`));
+            return;
+          }
+          chunks.push(buf);
         });
+
         res.on('end', () => {
           resolve({
-            statusCode: res.statusCode ?? 500,
-            data: body
+            statusCode,
+            data: Buffer.concat(chunks).toString('utf8')
           });
         });
       }

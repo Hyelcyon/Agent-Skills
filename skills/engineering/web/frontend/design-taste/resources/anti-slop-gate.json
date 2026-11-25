@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "name": "SeniorDesignTasteAntiSlopGate",
+  "dials": {
+    "min": 1,
+    "max": 10,
+    "required": ["DESIGN_VARIANCE", "MOTION_INTENSITY", "VISUAL_DENSITY"]
+  },
+  "typography": {
+    "maxFontFamilies": 3,
+    "minScaleRatio": 1.25,
+    "displayTrackingRangeEm": [-0.045, -0.015],
+    "proseMeasureChRange": [58, 74],
+    "requireTabularNumsForMetrics": true,
+    "discourageSoloGenericFonts": ["Inter", "Roboto", "Arial"]
+  },
+  "color": {
+    "requireOklchOrPerceptualScale": true,
+    "maxAccentViewportRatio": 0.1,
+    "bannedGradientCliches": [
+      "indigo-purple-cyan neon hero gradient",
+      "glowing box-shadow halo on static cards",
+      "pure #000000 canvas paired with pure #ffffff card borders"
+    ]
+  },
+  "geometryAndMotion": {
+    "enforceConcentricBorderRadius": true,
+    "maxNestedCardDepth": 1,
+    "banLinearUiTransitions": true,
+    "maxMicroInteractionMs": 250,
+    "allowedGpuProperties": ["transform", "opacity", "clip-path"]
+  },
+  "bannedFillerCopy": [
+    "unleash",
+    "supercharge",
+    "seamless",
+    "revolutionize",
+    "next-generation",
+    "elevate your workflow",
+    "ai-powered magic"
+  ]
+}

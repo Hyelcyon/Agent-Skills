@@ -4,7 +4,9 @@
 .type ticket_lock_init, %function
 .type ticket_lock_acquire, %function
 .type ticket_lock_release, %function
+.text
 
+// Packed layout (little-endian): [x0+0..1] = next (u16), [x0+2..3] = owner (u16)
 ticket_lock_init:
     str wzr, [x0]
     ret
@@ -12,7 +14,12 @@ ticket_lock_init:
 ticket_lock_acquire:
 .L_request_ticket:
     ldaxr w1, [x0]
-    add w2, w1, #1
+    // Increment only lower 16-bit 'next' without carrying overflow into upper 'owner' field
+    and w2, w1, #0xffff
+    add w2, w2, #1
+    and w2, w2, #0xffff
+    and w3, w1, #0xffff0000
+    orr w2, w2, w3
     stlxr w3, w2, [x0]
     cbnz w3, .L_request_ticket
 
@@ -32,9 +39,10 @@ ticket_lock_acquire:
     ret
 
 ticket_lock_release:
-    ldar w1, [x0]
-    add w1, w1, #(1 << 16)
-    stlr w1, [x0]
+    // Release-store strictly to upper 16-bit 'owner' halfword so concurrent 'next' acquires are never overwritten
+    ldrh w1, [x0, #2]
+    add w1, w1, #1
+    stlrh w1, [x0, #2]
     sev
     ret
 

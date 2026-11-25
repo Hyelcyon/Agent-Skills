@@ -42,6 +42,7 @@ When the task scope matches any of the following categories, hydrate and follow 
 | | Svelte 5, Runes ($state, $derived) | [`skills/engineering/web/frontend/svelte`](../skills/engineering/web/frontend/svelte/SKILL.md) |
 | | Angular 19+, Signals, Deferrable Views | [`skills/engineering/web/frontend/angular`](../skills/engineering/web/frontend/angular/SKILL.md) |
 | | TanStack Query, Zustand, URL state | [`skills/engineering/web/frontend/state-management`](../skills/engineering/web/frontend/state-management/SKILL.md) |
+| | Senior art direction, anti-slop typography, OKLCH craft, Taste Dials | [`skills/engineering/web/frontend/design-taste`](../skills/engineering/web/frontend/design-taste/SKILL.md) |
 | | Core Web Vitals (LCP, INP, CLS) | [`skills/engineering/web/frontend/performance`](../skills/engineering/web/frontend/performance/SKILL.md) |
 | | View Transitions, WCAG 2.2 AA | [`skills/engineering/web/frontend/ui-ux`](../skills/engineering/web/frontend/ui-ux/SKILL.md) |
 | | React Bits animated UI, 3D backgrounds | [`skills/engineering/web/frontend/react-bits`](../skills/engineering/web/frontend/react-bits/SKILL.md) |
@@ -73,6 +74,12 @@ When the task scope matches any of the following categories, hydrate and follow 
 | **Research & Learning** | Fast technical triage, multi-hop search & falsification | [`skills/research/light-research`](../skills/research/light-research/SKILL.md) |
 | | Multi-vector spikes, gap-detection loops, Pugh matrix, ADR | [`skills/research/deep-research`](../skills/research/deep-research/SKILL.md) |
 | | Workspace memory, user feedback /learn, post-mortems | [`skills/research/knowledge-learning`](../skills/research/knowledge-learning/SKILL.md) |
+| **Skill Governance & Misc** | Antigravity App `skills.json`, schemas, manual skill audits | [`skills/misc/antigravity-skills-manager`](../skills/misc/antigravity-skills-manager/SKILL.md) |
+| | Antigravity IDE/CLI, built-in customizations, plugins, hooks | Built-in `antigravity-guide`, `agy-customizations`, `plugin` |
+| | Claude Code skill frontmatter, `context: fork`, plugins | [`skills/misc/claude-skills-manager`](../skills/misc/claude-skills-manager/SKILL.md) |
+| | Codex CLI/App `.agents/skills/`, `agents/openai.yaml` | [`skills/misc/codex-skills-manager`](../skills/misc/codex-skills-manager/SKILL.md) |
+| | Lazy Senior Developer minimal diffs, root-cause & YAGNI | [`skills/misc/senior`](../skills/misc/senior/SKILL.md) |
+| | Ongoing maintenance, dependency upgrades, dead-code pruning | [`skills/misc/maintenance`](../skills/misc/maintenance/SKILL.md) |
 
 ---
 
@@ -90,8 +97,8 @@ Once dispatched to a skill, execute through the standard 5-phase protocol:
 
 ## 4. Invariant Enforcement
 
-- **Strict Zero Inline Comments**: Enforce [`rules/senior-developer-rules.md`](./senior-developer-rules.md)—never inject redundant `//` or `/* */` comments explaining what code visibly does.
-- **Mandatory English-Only Code & Comments**: Enforce [`rules/senior-developer-rules.md`](./senior-developer-rules.md)—all code identifiers, types, inline comments, docstrings, and technical notes must be authored exclusively in English for readability and consistency.
+- **Strict Zero Inline Comments**: Enforce [`rules/senior-developer-rules.md`](../rules/senior-developer-rules.md)—never inject redundant `//` or `/* */` comments explaining what code visibly does.
+- **Mandatory English-Only Code & Comments**: Enforce [`rules/senior-developer-rules.md`](../rules/senior-developer-rules.md)—all code identifiers, types, inline comments, docstrings, and technical notes must be authored exclusively in English for readability and consistency.
 - **Progressive Asset Loading**: Read sub-documents in `references/` or `examples/` only when that specific implementation branch is needed.
 
 ---

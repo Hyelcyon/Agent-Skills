@@ -4,7 +4,7 @@
 #include <type_traits>
 
 template <typename T>
-concept Numeric = std::integral<T> || std::floating_point<T>;
+concept Numeric = (std::integral<T> || std::floating_point<T>) && !std::same_as<std::remove_cv_t<T>, bool>;
 
 template <typename T>
 concept PrintableEntity = requires(T entity) {

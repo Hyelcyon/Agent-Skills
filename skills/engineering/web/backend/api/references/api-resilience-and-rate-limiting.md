@@ -6,7 +6,7 @@ Engineering standards for protecting backend services from thundering herds, cas
 
 ## 1. Sliding Window Rate Limiting
 
-Avoid fixed-window counters that allow burst traffic at boundary edges. Implement sliding window logs or sliding window counters:
+Avoid fixed-window counters that allow 2x burst traffic at boundary edges, and avoid non-atomic `GET` + `ZADD` sequences that leak requests under concurrency. Execute distributed sliding-window checks atomically inside a single Redis Lua script using unique per-request ZSET members (`${nowMs}:${requestId}`) so requests arriving within the same millisecond do not overwrite each other. Return IETF `RateLimit-*` headers (`RateLimit-Reset` as delta-seconds until window reset):
 
 ```typescript
 export interface RateLimitStatus {
@@ -21,7 +21,7 @@ export function computeRateLimitHeaders(status: RateLimitStatus): Record<string,
     'RateLimit-Limit': String(status.limit),
     'RateLimit-Remaining': String(status.remaining),
     'RateLimit-Reset': String(status.resetSeconds),
-    ...(status.allowed ? {} : { 'Retry-After': String(status.resetSeconds) })
+    ...(status.allowed ? {} : { 'Retry-After': String(Math.max(1, status.resetSeconds)) })
   };
 }
 ```
@@ -31,9 +31,9 @@ export function computeRateLimitHeaders(status: RateLimitStatus): Record<string,
 ## 2. Distributed Circuit Breaker Pattern
 
 Prevent dead downstream dependencies from saturating API gateway thread pools:
-- **Closed**: Requests pass through normally. Failure counts are tracked within a rolling time window.
+- **Closed**: Requests pass through normally. Failure counts are tracked within a rolling time window or ring buffer once a minimum request volume is reached.
 - **Open**: When failure percentage exceeds threshold (e.g., 50%), all subsequent calls fail fast immediately without making network calls.
-- **Half-Open**: After a recovery delay (e.g., 10 seconds), a single probe request is permitted. If successful, state resets to Closed.
+- **Half-Open**: After a recovery delay (e.g., 10 seconds), an atomic in-flight probe guard permits a bounded probe request (never a stampede of concurrent probes). If the probe succeeds, state resets to `Closed`; if it fails, state returns immediately to `Open` and restarts the recovery timer.
 
 ---
 

@@ -19,9 +19,10 @@ As backend services grow past 20 endpoints:
 3. **Framework Lock-in**: Business rules become intertwined with database ORM decorators and HTTP request/response objects, making testing without database mocks impossible.
 
 ### The Big Tech Consensus: Modular Hexagonal Architecture
-Group code by **Business Domain Modules (Vertical Boundary)**, and structure the inside of each module using **Ports and Adapters (Horizontal Inward Invariant)**:
-- **Vertical Boundaries**: High cohesion within a domain (e.g. `billing`, `inventory`, `identity`). Modules communicate via public interfaces or in-memory events.
-- **Horizontal Decoupling**: Business logic in the core domain knows nothing about HTTP frameworks, ORMs, SQL dialects, or external vendor APIs.
+Group code by **Business Domain Modules (Vertical Boundary)**, and structure the inside of each module according to its genuine domain complexity:
+- **Vertical Boundaries**: High cohesion within a domain (e.g. `billing`, `inventory`, `identity`). Modules communicate via public interfaces or events.
+- **Pragmatic Sizing (YAGNI Boundary)**: Use a simple vertical slice (`routes.ts`, `service.ts`, `queries.ts`) for straightforward CRUD modules with a single database. Adopt the full 4-tier Hexagonal layout (`domain/`, `application/`, `infrastructure/`, `presentation/`) only when domain invariants require framework-free testing or multiple external provider adapters exist.
+- **Horizontal Decoupling**: In Hexagonal modules, business logic in the core domain knows nothing about HTTP frameworks, ORMs, SQL dialects, or external vendor APIs.
 
 ---
 
@@ -121,8 +122,8 @@ Dependencies must point strictly **inward** toward the pure Domain Core:
 ### Invariant 3: Inter-Module Communication via Public API
 - `modules/order` must never import internal infrastructure or controllers from `modules/billing`.
 - Communication between modules occurs strictly through:
-  1. The module's root `index.ts` exporting application use-case interfaces.
-  2. Asynchronous Domain Events via the Transactional Outbox pattern.
+  1. The module's root `index.ts` exporting application use-case interfaces (and sharing the local DB transaction inside a single-DB modular monolith when strong consistency suffices).
+  2. Asynchronous Domain Events via the Transactional Outbox pattern when events cross process or message-broker boundaries.
 
 ---
 

@@ -13,7 +13,6 @@ import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 
 @Component({
   selector: 'app-perf-profile',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<div>Active: {{ isActive() }}</div>`
 })
@@ -36,7 +35,7 @@ Bridge RxJS streams into signals declaratively:
 `toSignal` automatically handles subscription and unsubscription according to the component lifecycle:
 
 ```typescript
-import { Component, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 
@@ -47,7 +46,7 @@ interface ServerMetrics {
 
 @Component({
   selector: 'app-metrics-panel',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (metrics(); as m) {
       <div>CPU: {{ m.cpuUsage }}% | RAM: {{ m.memoryUsage }}MB</div>
@@ -87,20 +86,20 @@ export class MetricsPanelComponent {
 - ✅ **The Senior Fix**: Keep `computed()` getters strictly pure and read-only.
 
 ### 4. Overusing `effect()` for State Derivation
-- ❌ **Anti-Pattern**: Using `effect()` to listen to Signal A and write to Signal B.
-- ✅ **The Senior Fix**: Use `computed()` for all derived values.
+- ❌ **Anti-Pattern**: Using `effect()` (or deprecated `allowSignalWrites`) to listen to Signal A and write to Signal B.
+- ✅ **The Senior Fix**: Use `computed()` for read-only derived values and `linkedSignal()` for derived writable/resettable state.
 
 ### 5. Tracking by Array Index in `@for`
 - ❌ **Anti-Pattern**: Using `track $index` for dynamic collections that can be sorted or filtered.
 - ✅ **The Senior Fix**: Always track by unique entity ID: `track item.id`.
 
-### 6. Introducing `NgModule` Containers
-- ❌ **Anti-Pattern**: Writing `NgModule` definitions for newly created features.
-- ✅ **The Senior Fix**: Use `standalone: true` everywhere.
+### 6. Introducing `NgModule` Containers or Redundant `standalone: true`
+- ❌ **Anti-Pattern**: Writing `NgModule` definitions for new features, or repeating `standalone: true` on Angular 19+ components.
+- ✅ **The Senior Fix**: Rely on Angular 19+ standalone-by-default declarations without `NgModule` boilerplate.
 
 ### 7. Relying on Zone.js Default Dirty Checking
 - ❌ **Anti-Pattern**: Leaving components on default change detection with full Zone.js scans.
-- ✅ **The Senior Fix**: Use `provideExperimentalZonelessChangeDetection()` or `ChangeDetectionStrategy.OnPush`.
+- ✅ **The Senior Fix**: Use `provideZonelessChangeDetection()` (Angular 20+ stable; `provideExperimentalZonelessChangeDetection()` in Angular 19) and `ChangeDetectionStrategy.OnPush`.
 
 ### 8. Direct DOM Access via `document.getElementById`
 - ❌ **Anti-Pattern**: Bypassing Angular's renderer and queries with browser globals.

@@ -44,17 +44,17 @@ async def failing_worker(name: str) -> None:
     if name == "cache":
         raise TimeoutError("Redis ping timeout")
 
-async def run_pipeline() -> None:
+async def run_pipeline() -> list[str]:
+    failures: list[str] = []
     try:
         async with asyncio.TaskGroup() as tg:
             tg.create_task(failing_worker("db"))
             tg.create_task(failing_worker("cache"))
     except* ConnectionResetError as eg:
-        for error in eg.exceptions:
-            pass
+        failures.extend(f"connection:{err}" for err in eg.exceptions)
     except* TimeoutError as eg:
-        for error in eg.exceptions:
-            pass
+        failures.extend(f"timeout:{err}" for err in eg.exceptions)
+    return failures
 ```
 
 The `except*` syntax enables granular matching across heterogeneous exception trees, allowing selective remediation and clean error logging.

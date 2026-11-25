@@ -45,8 +45,8 @@ set-max-intset-entries 512
 ## 3. Memory Diagnostics & Big Key Triage
 
 ```bash
-# Sample keyspace to identify large data structures without blocking the main thread
-redis-cli --bigkeys
+# Sample keyspace with 100ms sleep between SCAN batches (run on a replica when available)
+redis-cli --bigkeys -i 0.1
 
 # Analyze memory consumed by a specific key in bytes
 redis-cli MEMORY USAGE "prod:session:active_users"

@@ -31,14 +31,14 @@ Consider the Korean label: `"사용자 요청"` (User Request).
   $$W_v = (5 \times 2) + (1 \times 1) = 11 \text{ columns}$$
 
 If an agent calculates box interior width as 18 and determines padding via:
-$$P = 18 - \text{len}("사용자 요청") = 18 - 6 = 12 \text{ spaces}$$
-The resulting line renders as:
-$$11 + 12 = 23 \text{ columns}$$
-This pushes the right border out by 5 columns, shattering the box:
+$$P = 18 - \text{len}(\text{"사용자 요청"}) = 18 - 6 = 12 \text{ trailing spaces}$$
+The resulting interior renders as:
+$$1 \text{ (leading)} + 11 \text{ (label)} + 12 \text{ (trailing)} = 24 \text{ interior columns}$$
+Including the two `|` borders, the line renders at 26 columns instead of 20, shattering the box:
 
 ```text
 +------------------+   <-- Width: 20 columns
-| 사용자 요청            | <-- Visual Width: 25 columns! Shattered boundary!
+| 사용자 요청            | <-- Visual Width: 26 columns! Shattered boundary!
 +------------------+
 ```
 
@@ -56,11 +56,18 @@ $$\text{col\_width}(c) = \begin{cases} 2 & \text{if } \text{eaw}(c) \in \{'W', '
 ```python
 import unicodedata
 
-def visual_width(text: str) -> int:
+def visual_width(text: str, ambiguous_width: int = 1) -> int:
     width = 0
     for char in text:
+        if unicodedata.combining(char) or unicodedata.category(char) in ("Mn", "Me", "Cf"):
+            continue
         eaw = unicodedata.east_asian_width(char)
-        width += 2 if eaw in ('W', 'F') else 1
+        if eaw in ("W", "F"):
+            width += 2
+        elif eaw == "A":
+            width += ambiguous_width
+        else:
+            width += 1
     return width
 ```
 
@@ -74,15 +81,15 @@ When authoring a box containing CJK text:
 2. **Determine Inner Width ($W_{\text{inner}}$)**:
    $$W_{\text{inner}} = W_{\text{box}} - 2 = 22 \text{ columns}$$
 3. **Compute Visual Width of Content ($W_v$)**:
-   For `"주문 처리 서비스"` (5 Hangul + 2 spaces):
-   $$W_v = (5 \times 2) + (2 \times 1) = 12 \text{ columns}$$
+   For `"주문 처리 서비스"` (7 Hangul syllables + 2 spaces):
+   $$W_v = (7 \times 2) + (2 \times 1) = 16 \text{ columns}$$
 4. **Compute Space Padding**:
-   $$\text{Remaining Space} = W_{\text{inner}} - W_v = 22 - 12 = 10 \text{ spaces}$$
-   $$P_{\text{left}} = 5 \text{ spaces}, \quad P_{\text{right}} = 5 \text{ spaces}$$
+   $$\text{Remaining Space} = W_{\text{inner}} - W_v = 22 - 16 = 6 \text{ spaces}$$
+   $$P_{\text{left}} = 3 \text{ spaces}, \quad P_{\text{right}} = 3 \text{ spaces}$$
 5. **Verified Monospace Assembly**:
    ```text
    +----------------------+   (24 cols)
-   |     주문 처리 서비스     |   (1 + 5 + 12 + 5 + 1 = 24 cols)
+   |   주문 처리 서비스   |   (1 + 3 + 16 + 3 + 1 = 24 cols)
    +----------------------+   (24 cols)
    ```
    The right border aligns with mathematical precision.

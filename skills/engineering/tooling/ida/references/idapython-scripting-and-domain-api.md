@@ -74,8 +74,8 @@ When naming recovered functions or global memory variables, validate that the ta
 import ida_name
 
 def assign_function_name(address: int, new_name: str) -> bool:
-    flags = ida_name.SN_CHECK | ida_name.SN_NON_AUTO
-    return ida_name.set_name(address, new_name, flags)
+    flags = ida_name.SN_CHECK | ida_name.SN_NODUMMY
+    return bool(ida_name.set_name(address, new_name, flags))
 ```
 
-Passing `SN_CHECK` prevents IDA from overwriting non-identical symbols or introducing ambiguous duplicate identifiers.
+Passing `SN_CHECK` rejects conflicting or invalid names, and `SN_NODUMMY` refuses auto-generated dummy prefixes.

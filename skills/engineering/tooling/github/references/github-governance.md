@@ -28,16 +28,21 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          node-version: 20
+          persist-credentials: false
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
           cache: 'npm'
       - run: npm ci
       - run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+### Supply-Chain Hardening: Immutable Commit SHA Pinning
+Always pin every `uses:` action reference in `.github/workflows/` to a full 40-character commit SHA paired with an inline `# vX.Y.Z` tag comment. Mutable version tags (`@v4`, `@main`) can be moved if an upstream maintainer account or action repository is compromised, whereas commit SHAs guarantee deterministic workflow execution.
 
 ---
 

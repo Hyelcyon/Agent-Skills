@@ -3,16 +3,21 @@ interface Order {
   customerId: string;
   totalAmountCents: number;
   status: 'PENDING' | 'PAID' | 'CANCELLED';
+  version: number;
   createdAt: Date;
 }
 
 interface OrderRepositoryPort {
   findById(id: string): Promise<Order | null>;
-  save(order: Order): Promise<void>;
+  saveIfVersionMatches(order: Order, expectedVersion: number): Promise<boolean>;
 }
 
 interface PaymentGatewayPort {
-  charge(customerId: string, amountCents: number): Promise<{ success: boolean; transactionId: string }>;
+  charge(
+    customerId: string,
+    amountCents: number,
+    idempotencyKey: string
+  ): Promise<{ success: boolean; transactionId: string }>;
 }
 
 class OrderService {
@@ -28,6 +33,10 @@ class OrderService {
   }
 
   async completeOrder(orderId: string): Promise<Order> {
+    if (!orderId) {
+      throw new RangeError('orderId must be non-empty');
+    }
+
     const order = await this.orderRepo.findById(orderId);
     if (!order) {
       throw new Error(`Order ${orderId} not found`);
@@ -37,9 +46,11 @@ class OrderService {
       throw new Error(`Order cannot be completed from status ${order.status}`);
     }
 
+    // Deterministic idempotency key ensures retries after DB persistence faults never double-charge
     const paymentResult = await this.paymentGateway.charge(
       order.customerId,
-      order.totalAmountCents
+      order.totalAmountCents,
+      `order-payment:${order.id}:v${order.version}`
     );
 
     if (!paymentResult.success) {
@@ -48,10 +59,15 @@ class OrderService {
 
     const updatedOrder: Order = {
       ...order,
-      status: 'PAID'
+      status: 'PAID',
+      version: order.version + 1
     };
 
-    await this.orderRepo.save(updatedOrder);
+    const saved = await this.orderRepo.saveIfVersionMatches(updatedOrder, order.version);
+    if (!saved) {
+      throw new Error(`Concurrent modification conflict while completing order ${orderId}`);
+    }
+
     return updatedOrder;
   }
 }

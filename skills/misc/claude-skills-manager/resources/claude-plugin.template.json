@@ -1,0 +1,12 @@
+{
+  "name": "team-engineering-kit",
+  "version": "1.0.0",
+  "description": "Production engineering skills and quality gates for Claude Code.",
+  "author": {
+    "name": "Engineering Platform"
+  },
+  "skills": [
+    "./skills/pr-review",
+    "./skills/release-check"
+  ]
+}

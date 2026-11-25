@@ -59,16 +59,18 @@ golangci-lint run ./...
 
 ---
 
-## Prohibited Anti-Patterns
+## Prohibited Anti-Patterns & Fatal Mistakes
 
 - ❌ **Fire-and-forget goroutines**: Spawning `go worker()` without a deterministic shutdown wait mechanism.
+- ❌ **Idempotency-blind `close(ch)` or double-close panics**: Guard channel closes with `sync.Once` and never close channels from the receiver side.
+- ❌ **Busy-spin `select { default: }` loops**: Always block on a channel, `time.NewTicker`, or `ctx.Done()`.
 - ❌ **Interface pollution**: Creating single-implementation interfaces ahead of concrete usage.
 - ❌ **Storing `context.Context` inside structs**: Breaches request lifecycle scoping.
 - ❌ **Double error handling**: Logging an error and then returning it up the call chain.
 - ❌ **Error stutter**: Formatting errors with redundant "failed to" or "error occurred" prefixes.
 - ❌ **Deep `else` nesting**: Violating Line of Sight by nesting successful code paths.
 - ❌ **Using `time.Sleep` for synchronization**: Relying on arbitrary sleep durations instead of channels/waitgroups.
-- ❌ **Copying mutexes**: Passing structs containing `sync.Mutex` by value instead of pointer.
+- ❌ **Copying mutexes or skipping `go test -race`**: Passing structs containing `sync.Mutex` by value or shipping concurrent code untested under `-race`.
 
 ---
 

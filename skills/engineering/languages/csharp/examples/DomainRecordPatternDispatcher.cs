@@ -1,5 +1,8 @@
 namespace Enterprise.Core.Domain;
 
+using System.Diagnostics;
+using System.Globalization;
+
 public abstract record PaymentState
 {
     private PaymentState() { }
@@ -17,14 +20,14 @@ public sealed record PaymentSummary
     public required bool IsTerminalState { get; init; }
 }
 
-public sealed class DomainRecordPatternDispatcher
+public static class DomainRecordPatternDispatcher
 {
     public static PaymentSummary EvaluateState(PaymentState state) => state switch
     {
         PaymentState.Pending p => new PaymentSummary
         {
             TransactionId = p.TransactionId,
-            StatusDescription = $"Pending authorization for amount {p.Amount:C}",
+            StatusDescription = string.Create(CultureInfo.InvariantCulture, $"Pending authorization for amount {p.Amount:0.00}"),
             IsTerminalState = false
         },
         PaymentState.Authorized a => new PaymentSummary
@@ -45,6 +48,6 @@ public sealed class DomainRecordPatternDispatcher
             StatusDescription = $"Rejected: [{r.ReasonCode}] {r.Message}",
             IsTerminalState = true
         },
-        _ => throw new InvalidOperationException($"Unhandled payment state: {state}")
+        _ => throw new UnreachableException($"Unhandled payment state: {state}")
     };
 }

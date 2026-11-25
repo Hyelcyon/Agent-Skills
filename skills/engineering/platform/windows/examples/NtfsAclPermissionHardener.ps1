@@ -21,19 +21,18 @@ if (-not (Test-Path -Path $TargetDirectory -PathType Container)) {
     throw "Target directory '$TargetDirectory' does not exist."
 }
 
-Write-Verbose "Disabling inheritance on '$TargetDirectory' and stripping existing ACEs..."
-& icacls.exe $TargetDirectory /inheritance:r
+Write-Verbose "Atomically disabling inheritance and granting least-privilege ACEs on '$TargetDirectory'..."
+& icacls.exe $TargetDirectory /inheritance:r /grant:r "NT AUTHORITY\SYSTEM:(OI)(CI)F" /grant:r "BUILTIN\Administrators:(OI)(CI)F"
 if ($LASTEXITCODE -ne 0) {
-    throw "Failed to disable inheritance on '$TargetDirectory'. Exit code: $LASTEXITCODE"
+    throw "Failed to harden base ACLs on '$TargetDirectory'. Exit code: $LASTEXITCODE"
 }
-
-Write-Verbose "Applying least-privilege permissions to SYSTEM and Administrators..."
-& icacls.exe $TargetDirectory /grant:r "NT AUTHORITY\SYSTEM:(OI)(CI)F"
-& icacls.exe $TargetDirectory /grant:r "BUILTIN\Administrators:(OI)(CI)F"
 
 if ($ServiceAccount -ne "NT AUTHORITY\SYSTEM") {
     Write-Verbose "Granting Modify rights to service account '$ServiceAccount'..."
     & icacls.exe $TargetDirectory /grant:r "${ServiceAccount}:(OI)(CI)M"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to grant Modify ACL to '$ServiceAccount'. Exit code: $LASTEXITCODE"
+    }
 }
 
 Write-Verbose "Retrieving verified ACL entries for reporting..."

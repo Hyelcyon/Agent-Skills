@@ -5,7 +5,7 @@ description: Use when adding animated UI components, text animations, 3D WebGL b
 
 # React Bits Animated UI & Motion Design Engineering
 
-An engineering runbook for integrating, configuring, and optimizing the 165+ animated, interactive components from React Bits (`reactbits.dev`) across React 19, Next.js 15, and Tailwind CSS.
+An engineering runbook for integrating, configuring, and optimizing the 218 animated, interactive components from React Bits (`reactbits.dev`) across React 19, Next.js 15, and Tailwind CSS.
 
 ## When to Use
 - Adding high-impact text animations (`BlurText`, `SplitText`, `DecryptedText`, `ShinyText`).

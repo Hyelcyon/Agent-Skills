@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "name": "DependencyUpgradeSafetyGate",
+  "rules": {
+    "forbidForceFlags": ["--force", "--legacy-peer-deps", "--ignore-engines"],
+    "requireLockfileUpdate": true,
+    "isolateMajorUpgrades": true,
+    "requireEngineCompatibilityCheck": true
+  },
+  "requiredChecksAfterBump": [
+    "typecheck",
+    "lint",
+    "unit_and_integration_tests",
+    "production_build"
+  ]
+}

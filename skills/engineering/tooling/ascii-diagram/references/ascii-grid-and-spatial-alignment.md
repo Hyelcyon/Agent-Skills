@@ -66,9 +66,9 @@ When routing right-angle turns, use matching corner glyphs and keep line row ind
 |  Node A  |----->|  Node B  |
 +----+-----+      +----------+
      |
-     +------------>+----------+
-                   |  Node C  |
-                   +----------+
+     +----------->+----------+
+                  |  Node C  |
+                  +----------+
 ```
 
 Corner junction pairs:

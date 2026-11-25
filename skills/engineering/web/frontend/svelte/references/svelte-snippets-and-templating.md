@@ -1,21 +1,21 @@
 # Svelte 5 Snippets and Templating Architecture
 
-A technical specification of Svelte 5 Snippets (`{#snippet}`), render tags (`{@render}`), component slots deprecation, and parameterized template composition.
+A technical specification of Svelte 5 Snippets (`{#snippet}`), render tags (`{@render}`), legacy `<slot />` replacement, and parameterized template composition.
 
 ---
 
 ## 1. The Snippet Paradigm vs Legacy Slots
 
 Svelte 5 deprecates `<slot />`, `<slot name="...">`, and `<svelte:fragment>` in favor of **Snippets**:
-- First-class JavaScript values: Snippets can be stored in variables, passed as props, and conditionally rendered.
-- Strongly typed: Snippet parameters are verified by the TypeScript compiler.
-- Explicit invocation: Snippets are rendered using `{@render mySnippet(arg)}`.
+- **First-Class Values**: Snippets can be passed as props, stored in variables, and conditionally rendered.
+- **TypeScript Verified**: `Snippet<[arg1: Type1, ...]>` validates parameter arity and types at compile time.
+- **Explicit Invocation**: Render snippets with `{@render mySnippet(arg)}` or safe optional `{@render optionalSnippet?.(arg)}`.
 
 ---
 
-## 2. Declaring and Rendering Snippets
+## 2. Declaring and Rendering Local Snippets
 
-Snippets are declared inside templates and invoked like functions:
+Snippets can be declared anywhere in a template and can recursively invoke themselves for tree structures:
 
 ```svelte
 <script lang="ts">
@@ -49,34 +49,50 @@ let users = $state<UserRecord[]>([
 
 ## 3. Passing Snippets as Props to Components
 
-Snippets are passed to child components via standard props:
-
 ### Child Component (`Modal.svelte`)
+Use native `<dialog>` for accessible modal focus trapping and `Escape` handling, paired with typed `Snippet` props:
+
 ```svelte
 <script lang="ts">
 import type { Snippet } from 'svelte';
 
 interface ModalProps {
   title: string;
+  open?: boolean;
   header?: Snippet;
-  children: Snippet;
+  children?: Snippet;
   footer?: Snippet<[actionCount: number]>;
 }
 
-let { title, header, children, footer }: ModalProps = $props();
+let { title, open = $bindable(false), header, children, footer }: ModalProps = $props();
+let dialogEl = $state<HTMLDialogElement>();
+
+$effect(() => {
+  if (!dialogEl) return;
+  if (open && !dialogEl.open) {
+    dialogEl.showModal();
+  } else if (!open && dialogEl.open) {
+    dialogEl.close();
+  }
+});
 </script>
 
-<div class="modal-dialog" role="dialog" aria-label={title}>
+<dialog
+  bind:this={dialogEl}
+  class="modal-dialog"
+  aria-labelledby="modal-title"
+  onclose={() => { open = false; }}
+>
   <div class="modal-header">
     {#if header}
       {@render header()}
     {:else}
-      <h2>{title}</h2>
+      <h2 id="modal-title">{title}</h2>
     {/if}
   </div>
 
   <div class="modal-body">
-    {@render children()}
+    {@render children?.()}
   </div>
 
   {#if footer}
@@ -84,25 +100,31 @@ let { title, header, children, footer }: ModalProps = $props();
       {@render footer(2)}
     </div>
   {/if}
-</div>
+</dialog>
 ```
 
 ### Parent Invocation
 ```svelte
 <script lang="ts">
 import Modal from './Modal.svelte';
+
+let isModalOpen = $state(false);
 </script>
 
-<Modal title="System Configuration">
+<button type="button" onclick={() => { isModalOpen = true; }}>Open Settings</button>
+
+<Modal title="System Configuration" bind:open={isModalOpen}>
   {#snippet header()}
     <h2>Custom System Header</h2>
   {/snippet}
 
-  <p>Main modal body content rendered inside default children snippet.</p>
+  <p>Main modal body content rendered inside the default children snippet.</p>
 
   {#snippet footer(actionCount)}
-    <button>Confirm ({actionCount} actions pending)</button>
-    <button>Cancel</button>
+    <button type="button" onclick={() => { isModalOpen = false; }}>
+      Confirm ({actionCount} pending)
+    </button>
+    <button type="button" onclick={() => { isModalOpen = false; }}>Cancel</button>
   {/snippet}
 </Modal>
 ```
@@ -111,16 +133,16 @@ import Modal from './Modal.svelte';
 
 ## 4. Default Slot Replacement: `children` Snippet
 
-When content is placed directly between component opening and closing tags, Svelte 5 automatically assigns it to the `children` prop:
+Markup placed directly between opening and closing component tags is automatically passed as the `children` Snippet prop:
 
 ```svelte
 <script lang="ts">
 import type { Snippet } from 'svelte';
 
-let { children }: { children: Snippet } = $props();
+let { children }: { children?: Snippet } = $props();
 </script>
 
 <section class="container">
-  {@render children()}
+  {@render children?.()}
 </section>
 ```

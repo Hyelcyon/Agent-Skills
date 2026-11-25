@@ -6,7 +6,7 @@ A deep technical manual on Vue's Vapor Mode, Virtual-DOM-less execution, and tem
 
 ## 1. What is Vapor Mode?
 
-Vapor Mode is an alternative compilation strategy inspired by Solid.js and Svelte:
+Vapor Mode is an **experimental compilation strategy (targeting Vue 3.6+)** inspired by Solid.js and Svelte rather than an enabled-by-default Vue 3.5 feature:
 - **No Virtual DOM**: Instead of compiling template trees into virtual nodes (`vnodes`) and running recursive diffing algorithms, Vapor Mode compiles components into direct DOM element creation and surgical signal subscribers.
 - **Lower Memory Usage**: Completely bypasses the creation and destruction of millions of intermediate VNode objects during rapid UI updates.
 - **Microsecond Render Performance**: Direct property updates (`element.textContent = value`) run at near-vanilla JavaScript speed.

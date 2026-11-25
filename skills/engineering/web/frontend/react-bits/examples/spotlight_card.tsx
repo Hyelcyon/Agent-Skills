@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useRef, useState, useCallback } from 'react';
 
 interface SpotlightCardProps extends React.HTMLAttributes<HTMLDivElement> {

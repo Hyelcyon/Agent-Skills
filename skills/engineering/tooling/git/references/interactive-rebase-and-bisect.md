@@ -72,14 +72,14 @@ git bisect reset
 
 ---
 
-## 4. Safe Remote Pushing with --force-with-lease
+## 4. Safe Remote Pushing with `--force-with-lease --force-if-includes`
 
 After rebasing a feature branch, remote history must be updated. Never run naked `git push --force`, which overwrites upstream changes pushed by teammates.
 
-Always use:
+Always pair `--force-with-lease` with `--force-if-includes` (and push only when requested):
 
 ```bash
-git push --force-with-lease
+git push --force-with-lease --force-if-includes origin <branch-name>
 ```
 
-`--force-with-lease` verifies that the remote ref matches your local remote-tracking branch. If another engineer pushed commits in the interim, the push is safely rejected.
+`--force-with-lease` verifies that the remote ref matches your local remote-tracking branch, while `--force-if-includes` additionally requires the remote-tracking commit to be reachable in your local reflog/branch history—protecting against silent overwrites after background `git fetch` or editor auto-fetch.

@@ -32,14 +32,26 @@ class AccountService {
 
   listAccounts(): AccountRecord[] {
     const stmt = this.db.prepare('SELECT id, name, balance FROM accounts');
-    return stmt.all() as AccountRecord[];
+    return stmt.all() as unknown as AccountRecord[];
+  }
+
+  close(): void {
+    this.db.close();
   }
 }
 
 const service = new AccountService();
 
 const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-  const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+  let url: URL;
+  try {
+    // Fixed localhost base prevents malformed Host headers from throwing synchronous TypeError
+    url = new URL(req.url ?? '/', 'http://localhost');
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Malformed request target' }));
+    return;
+  }
 
   if (req.method === 'GET' && url.pathname === '/accounts') {
     const accounts = service.listAccounts();
@@ -49,7 +61,14 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   }
 
   if (req.method === 'GET' && url.pathname.startsWith('/accounts/')) {
-    const id = url.pathname.slice('/accounts/'.length);
+    let id: string;
+    try {
+      id = decodeURIComponent(url.pathname.slice('/accounts/'.length));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Malformed account identifier encoding' }));
+      return;
+    }
     const account = service.getAccount(id);
 
     if (!account) {
@@ -67,4 +86,14 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   res.end(JSON.stringify({ error: 'Endpoint not found' }));
 });
 
-export { server, AccountService };
+function registerShutdownHandlers(): void {
+  const shutdown = (): void => {
+    server.close(() => {
+      service.close();
+    });
+  };
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
+}
+
+export { server, AccountService, registerShutdownHandlers };

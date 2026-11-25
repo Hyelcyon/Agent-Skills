@@ -40,10 +40,9 @@ Homebrew operates with distinct filesystem prefixes based on processor architect
 - **Intel (x86_64)**: `/usr/local`
 
 ### Declarative Dependency Bundling (`Brewfile`):
-Never install packages with ad-hoc `brew install` commands in team environments. Check a declarative `Brewfile` into Git:
+Never install packages with ad-hoc `brew install` commands in team environments. Modern Homebrew 4.x+ ships `brew bundle` built-in without requiring legacy `tap "homebrew/bundle"` or `homebrew/core`:
 ```ruby
 # Brewfile
-tap "homebrew/bundle"
 brew "git"
 brew "jq"
 brew "ripgrep"

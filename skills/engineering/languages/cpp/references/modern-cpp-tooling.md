@@ -61,7 +61,7 @@ CheckOptions:
 
 ```cpp
 #include <expected>
-#include <string>
+#include <limits>
 #include <string_view>
 
 enum class ParseError {
@@ -79,7 +79,11 @@ std::expected<int, ParseError> parse_positive_integer(std::string_view input) {
         if (c < '0' || c > '9') {
             return std::unexpected(ParseError::InvalidCharacter);
         }
-        value = value * 10 + (c - '0');
+        const int digit = c - '0';
+        if (value > (std::numeric_limits<int>::max() - digit) / 10) {
+            return std::unexpected(ParseError::Overflow);
+        }
+        value = value * 10 + digit;
     }
     return value;
 }

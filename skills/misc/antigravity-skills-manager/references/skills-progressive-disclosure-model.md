@@ -1,63 +1,49 @@
 # Antigravity Skills Progressive Disclosure Architecture
 
-Architectural principles for structuring agent skills using a three-tier progressive disclosure model to eliminate LLM context window pollution and prevent reasoning degradation.
-
-## 1. The Context Saturation Problem
-
-When an AI agent loads massive monolithic instruction manuals into its context window, several failure modes occur:
-1. **Attention Dilution**: Crucial constraints get lost among thousands of tokens of peripheral documentation ("lost in the middle" phenomenon).
-2. **Context Bloat & Latency**: Large prompts slow down model inference and consume excessive token quotas.
-3. **Instruction Confusion**: Conflicting edge-case examples from different frameworks confuse the model's active task scope.
+Architectural guide for structuring Antigravity Desktop App skills across three progressive loading tiers so the context window stays sharp and free of instruction dilution.
 
 ---
 
-## 2. The Three-Tier Progressive Disclosure Model
+## 1. Why Context Saturation Breaks Agents
 
-Antigravity skills solve context saturation by partitioning knowledge into three progressive tiers:
+Loading monolithic runbooks triggers three failures:
+1. **Attention Dilution ("Lost in the Middle")**: Non-negotiable invariants and security boundaries get buried under verbose tutorials.
+2. **Startup Token Tax**: Every discovered skill's frontmatter `name` and `description` loads at session startup; bloated descriptions slow routing across 50+ skills.
+3. **Cross-Framework Bleed**: Mixing unrelated sub-domains (e.g., build tooling + database locking) inside one `SKILL.md` increases hallucinated imports and incompatible APIs.
 
-```
-Tier 1: Discovery Metadata (name & description in YAML frontmatter)
-        Loaded globally at agent initialization (~50 tokens per skill)
+---
+
+## 2. Three-Tier Progressive Loading + Black-Box Execution
+
+```text
+Tier 1: Startup Discovery Index (~30-100 tokens/skill)
+        Reads ONLY YAML frontmatter (name + description).
         │
-        ▼ (Triggered only when user prompt matches skill intent)
-Tier 2: Core Operational Protocol (SKILL.md, < 180 lines)
-        Concise workflow phases, high-level invariants, clickable links
+        ▼ (Activated when prompt matches triggers / not excluded by anti-triggers)
+Tier 2: Operational Controller (SKILL.md, concise < 180 lines)
+        Core "When to Use", Fatal Mistakes, 5-Phase Workflow, Verification Gate, Links.
         │
-        ▼ (Loaded selectively only when specific phase requires deep data)
-Tier 3: Modular Deep Knowledge (references/, examples/, resources/)
-        Specialized topic documents, runnable code samples, starter configs
+        ▼ (Hydrated on-demand when hitting a specific branch)
+Tier 3: Deep Reference / Assets / Black-Box Scripts
+        - references/*.md   -> read selectively per sub-problem
+        - resources/*       -> read before scaffolding config/manifests
+        - examples/*        -> read before generating tricky concurrency/security code
+        - scripts/*         -> run with `--help` via terminal; read source ONLY to patch
 ```
 
 ---
 
-## 3. Tier 1: Discovery Metadata Invariants
+## 3. Tier Design Rules
 
-The YAML frontmatter must provide a high-signal description with explicit trigger terms and anti-triggers:
+### Tier 1 (`name` & `description`)
+- `description` must remain concise (`<= 1024` chars, ideally `100..260` chars), listing exact file names, framework versions, error symptoms, and sibling exclusions.
+- Either `"Use when ..."` (workstation catalog convention) or clear third-person `"Audits ... Use when ..."` satisfies Antigravity routing; **never summarize procedural steps** in `description`.
 
-```yaml
----
-name: nextjs
-description: Use when building or reviewing Next.js 15+ web applications, App Router layouts, React Server Components (RSC), Server Actions, Partial Prerendering (PPR), or next/image optimization. Do NOT use for static Vite SPAs.
----
-```
+### Tier 2 (`SKILL.md`)
+- Must state concrete activation boundaries, **Fatal Mistakes Never to Make**, an actionable workflow, verifiable proof criteria, and relative links (`[references/topic.md](./references/topic.md)`) to Tier 3 assets.
+- Do NOT instruct the agent to "read all files in `references/` upfront".
 
-A well-crafted description enables the agent harness to route queries accurately without loading the file body.
-
----
-
-## 4. Tier 2: SKILL.md Operational Structure
-
-The `SKILL.md` body acts as the mission controller:
-- Outlines the 5-Phase Agent Operational Protocol (Discovery, Architecture, Implementation, Quality, Delivery).
-- Imposes strict, non-negotiable architectural boundaries.
-- Links out to modular Tier 3 files via relative paths (e.g. `[references/topic.md](./references/topic.md)`).
-- Remains strictly under 180 lines of markdown.
-
----
-
-## 5. Tier 3: Granular Modularization
-
-Tier 3 files are modularized so an agent reads only what is necessary:
-- **`references/`**: Topic-focused architectural standards ($\ge 3$ files for standard engineering skills, $\ge 7$ for major platforms).
-- **`examples/`**: Verified, production-grade implementation code ($\ge 3$ files).
-- **`resources/`**: Reusable configuration templates, linters, schemas ($\ge 3$ files).
+### Tier 3 (`references/`, `examples/`, `resources/`, `scripts/`)
+- Link every Tier 3 document explicitly from `SKILL.md` so discovery is deterministic and verifiable by link checkers.
+- Keep `SKILL.md` body self-contained enough to prevent dangerous mistakes even before Tier 3 is hydrated.
+- Execute `scripts/` tools via terminal (`--help` first) rather than wasting context reading 200 lines of helper code just to run an audit.

@@ -8,12 +8,12 @@ interface GitLogOptions {
   branchName: string;
 }
 
-const SAFE_BRANCH_PATTERN = /^[a-zA-Z0-9._\-\/]+$/;
+const SAFE_BRANCH_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._\/-]{0,127}$/;
 
 async function getGitCommitLogs(options: GitLogOptions): Promise<string> {
   const boundedCount = Math.max(1, Math.min(options.maxCount, 100));
 
-  if (!SAFE_BRANCH_PATTERN.test(options.branchName)) {
+  if (!SAFE_BRANCH_PATTERN.test(options.branchName) || options.branchName.includes('..')) {
     throw new Error('Invalid branch name provided');
   }
 
@@ -21,8 +21,8 @@ async function getGitCommitLogs(options: GitLogOptions): Promise<string> {
     'log',
     `--max-count=${boundedCount}`,
     '--oneline',
-    '--',
-    options.branchName
+    options.branchName,
+    '--'
   ];
 
   const { stdout } = await execFileAsync('git', args, {

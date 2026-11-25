@@ -3,8 +3,7 @@
     "queries": {
       "staleTime": 300000,
       "gcTime": 600000,
-      "retry": 3,
-      "retryDelay": "exponential",
+      "retry": 2,
       "refetchOnWindowFocus": false,
       "refetchOnReconnect": true,
       "refetchOnMount": true,
@@ -14,14 +13,5 @@
       "retry": 0,
       "networkMode": "online"
     }
-  },
-  "cacheLimits": {
-    "maxQueries": 500,
-    "maxEntriesPerQuery": 100
-  },
-  "offlinePersistence": {
-    "enabled": true,
-    "maxAgeMs": 86400000,
-    "storageKey": "QUERY_OFFLINE_CACHE_V1"
   }
 }

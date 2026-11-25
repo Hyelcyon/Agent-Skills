@@ -29,8 +29,8 @@ When integrating with legacy systems or third-party vendor APIs:
 
 ```typescript
 export interface ThirdPartyUserPayload {
-  usr_first_nm: string;
-  usr_last_nm: string;
+  usr_first_nm: string | null | undefined;
+  usr_last_nm: string | null | undefined;
   actv_flg: 'Y' | 'N';
 }
 
@@ -41,8 +41,11 @@ export interface DomainUser {
 
 export class UserAntiCorruptionAdapter {
   static toDomain(payload: ThirdPartyUserPayload): DomainUser {
+    const parts = [payload.usr_first_nm, payload.usr_last_nm]
+      .map((part) => (part ?? '').trim())
+      .filter((part) => part.length > 0);
     return {
-      fullName: `${payload.usr_first_nm} ${payload.usr_last_nm}`.trim(),
+      fullName: parts.join(' '),
       isActive: payload.actv_flg === 'Y'
     };
   }
@@ -52,6 +55,7 @@ export class UserAntiCorruptionAdapter {
 ---
 
 ## 4. Key DDD Architectural Rules
+- Apply **Strategic DDD** (Bounded Context ownership) across all modules, but apply **Tactical DDD** (Aggregates, Value Objects, Domain Events) selectively where invariants warrant it rather than wrapping trivial CRUD tables.
 - Keep domain entities completely decoupled from database ORM decorators and HTTP transport logic.
 - Model immutable attributes as Value Objects with self-validating constructors.
 - Treat Domain Events as past-tense immutable facts (`OrderPlaced`, `PaymentReceived`).

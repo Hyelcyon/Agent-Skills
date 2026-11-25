@@ -6,7 +6,7 @@ Engineering standards for reading execution plans, identifying bottlenecks, and 
 
 ## 1. Running True Diagnostic Queries
 
-Never run bare `EXPLAIN query`. Always include `ANALYZE` and `BUFFERS` to observe real runtime execution and disk/cache interactions:
+Never run bare `EXPLAIN query` when profiling latency. Always include `ANALYZE` and `BUFFERS` to observe actual runtime execution and disk/cache interactions (wrap write statements `INSERT`/`UPDATE`/`DELETE` in `BEGIN; EXPLAIN (ANALYZE, BUFFERS) ...; ROLLBACK;` so mutations do not persist):
 
 ```sql
 EXPLAIN (ANALYZE, BUFFERS, SETTINGS, TIMING)
@@ -23,12 +23,12 @@ ORDER BY created_at DESC;
 
 - **Sequential Scan (`Seq Scan`)**:
   - Scans every page in the table from disk/RAM.
-  - Efficient only when returning $> 10-20\%$ of the entire table. On large tables with selective filters, indicates a missing or un-usable index.
+  - Efficient only when returning $> 10-20\%$ of the entire table. On large tables with selective filters, indicates a missing or unusable index.
 - **Index Scan**:
   - Navigates B-Tree index to retrieve tuple pointers, then fetches each row from table heap.
   - Can cause random I/O if rows are physically scattered.
 - **Index Only Scan**:
-  - All requested columns exist directly in the index (via index key or `INCLUDE` columns). Zero table heap pages are read if the visibility map indicates pages are clean. Highest performance.
+  - All requested columns exist directly in the index (via index key or `INCLUDE` columns). Zero table heap pages are read **only when the Visibility Map (VM) marks those heap pages as `all-visible`** (maintained by `VACUUM` / autovacuum). High `Heap Fetches:` indicates stale visibility map bits.
 - **Bitmap Index Scan + Bitmap Heap Scan**:
   - Collects row pointers in a memory bitmap, sorts them by physical disk location, and reads heap pages sequentially. Typical when returning a moderate number of rows ($1-10\%$).
 

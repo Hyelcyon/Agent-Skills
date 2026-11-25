@@ -21,8 +21,9 @@ static inline uint64_t rdtsc_end(void) {
         "rdtscp\n\t"
         "mov %%eax, %0\n\t"
         "mov %%edx, %1\n\t"
+        "xor %%eax, %%eax\n\t"
         "cpuid\n\t"
-        : "=r"(lo), "=r"(hi)
+        : "=&r"(lo), "=&r"(hi)
         :
         : "rax", "rbx", "rcx", "rdx"
     );

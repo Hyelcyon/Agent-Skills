@@ -61,5 +61,5 @@ export function fulfillOrder(orderId: OrderId, customerId: CustomerId): void {
 
 ## 4. Invariants for Generics
 - Prefer constrained generics (`<T extends Record<string, unknown>>`) over unconstrained `<T>`.
-- Never use `Function` or `object` as generic constraints; use explicit function signatures `(...args: any[]) => any` or `Record<string, unknown>`.
+- Never use `Function` or `object` as generic constraints; use explicit function signatures `(...args: never[]) => unknown` or `Record<string, unknown>`.
 - Avoid deep recursive type calculations exceeding 20 levels of recursion to prevent compiler lockups.

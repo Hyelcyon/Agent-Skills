@@ -4,6 +4,8 @@
     "maxStatementTimeoutMs": 30000,
     "requireReversibleDownScript": true,
     "requireNonBlockingIndex": true,
+    "forbidConcurrentIndexInsideTransaction": true,
+    "forbidVolatileDefaultOnLiveTable": true,
     "requireBatchBackfillForRowsOver": 100000
   }
 }

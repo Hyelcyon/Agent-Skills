@@ -8,8 +8,8 @@ description: Use when building, refactoring, or optimizing Angular applications,
 Senior engineering standards for modern Angular 19+ applications: Standalone Components, Signals-first reactivity, zoneless change detection, modern block control flow (`@if`, `@for`, `@defer`), and functional dependency injection.
 
 ## When to Use
-- Authoring modern Angular components using Standalone APIs (`standalone: true`).
-- Managing reactive component state via `signal()`, `computed()`, and `effect()`.
+- Authoring modern Angular components (standalone by default in Angular 19+).
+- Managing reactive component state via `signal()`, `computed()`, `linkedSignal()`, `resource()`, and `effect()`.
 - Binding inputs and outputs using functional Signal APIs (`input()`, `output()`, `model()`).
 - Code-splitting heavy component subtrees via `@defer (on viewport)`.
 - Eliminating Zone.js runtime overhead via zoneless change detection.
@@ -48,17 +48,25 @@ When developing or refactoring Angular components, the agent must execute these 
 1. Replace constructor parameter injection with functional `inject(ServiceToken)`.
 2. Keep class constructors clean of dependency initialization side effects.
 
-### Phase 5: Zoneless & OnPush Verification
-1. Ensure the component uses `ChangeDetectionStrategy.OnPush`.
-2. Convert any consumed RxJS streams to signals using `toSignal()` rather than calling `.subscribe()` manually.
+### Phase 5: Zoneless, OnPush & Build Verification
+1. Ensure every component uses `ChangeDetectionStrategy.OnPush` and configures zoneless providers (`provideZonelessChangeDetection()` in Angular 20+, or `provideExperimentalZonelessChangeDetection()` in Angular 19) with `zone.js` removed from `angular.json` polyfills.
+2. Convert consumed RxJS streams to signals using `toSignal()` rather than calling `.subscribe()` manually (Angular 19 removed `allowSignalWrites` on `effect()`; derive writable resettable state with `linkedSignal()` instead).
+3. Run build and non-blocking verification (execute unit tests if a test runner is configured in the project):
+   ```bash
+   npx ng build && (npx ng test --watch=false --browsers=ChromeHeadless || true)
+   ```
 
 ---
 
-## 2. Critical Anti-Patterns to Avoid
+## 2. Fatal Mistakes & Critical Anti-Patterns to Avoid
+- ❌ Adding redundant `standalone: true` on Angular 19+ components, directives, or pipes (standalone is the implicit default).
 - ❌ Creating or editing `NgModule` definitions in new features (Angular is standalone-first).
-- ❌ Calling `.subscribe()` inside components without automatic cleanup (causes memory leaks).
+- ❌ Using `effect({ allowSignalWrites: true })` (removed in Angular 19) or using `effect()` for signal-to-signal derivation instead of `computed()` / `linkedSignal()`.
+- ❌ Calling `.subscribe()` inside components without `toSignal()` or `takeUntilDestroyed()` cleanup (causes memory leaks).
 - ❌ Leaving components on default change detection with Zone.js (causes full-tree dirty checking).
 - ❌ Mutating signal contents in-place (`sig().push()`) instead of using `.update()`.
+- ❌ Using `@for` without a stable `track` key (or using `track $index` on mutable lists).
+- ❌ Using constructor parameter injection when `inject()` is applicable.
 
 ## References & Resources
 - Signals-First Reactivity: [references/angular-signals-first-reactivity.md](./references/angular-signals-first-reactivity.md)

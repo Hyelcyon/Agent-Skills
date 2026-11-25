@@ -15,40 +15,47 @@ Never execute unbounded updates (`UPDATE orders SET status_code = 1;`). Large mo
 
 ## 2. Batched Keyset Backfill Pattern
 
-Perform backfills in small, deterministic batches based on primary keys with sleep intervals between iterations:
+Perform backfills in small, deterministic keyset batches using a `PROCEDURE` (`PG 11+`) so each `COMMIT` actually releases row locks and allows vacuuming between sleeps (`DO $$` blocks cannot execute `COMMIT` and hold all locks for the entire loop):
 
 ```sql
-DO $$
+CREATE OR REPLACE PROCEDURE backfill_normalized_emails(batch_size INT DEFAULT 5000)
+LANGUAGE plpgsql
+AS $$
 DECLARE
-  batch_size INT := 5000;
   last_processed_id BIGINT := 0;
-  rows_updated INT := 0;
+  batch_count INT := 0;
+  max_batch_id BIGINT;
 BEGIN
   LOOP
-    UPDATE accounts
-    SET normalized_email = LOWER(email)
-    WHERE id IN (
-      SELECT id FROM accounts
+    WITH batch AS (
+      SELECT id, email
+      FROM accounts
       WHERE id > last_processed_id
       ORDER BY id ASC
       LIMIT batch_size
-    );
+    ),
+    updated AS (
+      UPDATE accounts AS a
+      SET normalized_email = LOWER(b.email)
+      FROM batch AS b
+      WHERE a.id = b.id
+        AND a.normalized_email IS DISTINCT FROM LOWER(b.email)
+      RETURNING a.id
+    )
+    SELECT COUNT(*), COALESCE(MAX(id), last_processed_id)
+    INTO batch_count, max_batch_id
+    FROM batch;
 
-    GET DIAGNOSTICS rows_updated = ROW_COUNT;
-    EXIT WHEN rows_updated = 0;
-
-    SELECT MAX(id) INTO last_processed_id
-    FROM (
-      SELECT id FROM accounts
-      WHERE id > last_processed_id
-      ORDER BY id ASC
-      LIMIT batch_size
-    ) sub;
+    EXIT WHEN batch_count = 0;
+    last_processed_id := max_batch_id;
 
     COMMIT;
     PERFORM pg_sleep(0.05);
   END LOOP;
-END $$;
+END;
+$$;
+
+CALL backfill_normalized_emails(5000);
 ```
 
 ---

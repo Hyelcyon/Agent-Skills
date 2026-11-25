@@ -61,8 +61,11 @@ Executing this inside an atomic Lua script guarantees that no context switch or 
 
 ---
 
-## 3. Lua Scripting Invariants in Redis
+## 3. Lua Scripting Invariants & Redis Cluster Atomicity
 
 1. **Transactional Isolation**: Lua scripts execute atomically. While a script is running, no other command can execute on that Redis shard.
-2. **Deterministic Inputs**: Keys accessed by the script MUST be passed via the `KEYS` array (not hardcoded inside the script text) so that Redis Cluster routers can verify that all keys map to the same hash slot.
-3. **Execution Time Limits**: Scripts should execute within sub-millisecond durations. Long-running Lua scripts block the entire engine, causing `BUSY Redis is busy running a script` errors.
+2. **Deterministic `KEYS[]` & `{hash_tag}` Co-Location**:
+   - Every key accessed by a Lua script MUST be passed via the `KEYS` array (`KEYS[1..N]`), never constructed dynamically or hardcoded inside the script body.
+   - In **Redis Cluster**, all keys in a multi-key Lua script or `MULTI/EXEC` transaction MUST hash to the same slot via identical `{hash_tag}` substrings (e.g., `prod:orders:{checkout:99481}:lock` and `prod:orders:{checkout:99481}:state`). Otherwise Cluster rejects the command with `CROSSSLOT Keys in request don't hash to the same slot`.
+3. **Idempotent Lease Extension vs Reference-Counted Reentrancy**: A string-key `GET`/`PEXPIRE` lock script is idempotent/lease-extending for the same owner token, NOT reference-counted reentrant (`DEL` in release immediately drops the lock; reference-counted reentrancy requires a Hash with per-token counters).
+4. **Execution Time Limits**: Scripts must execute within sub-millisecond durations. Long-running Lua scripts block the entire event loop, causing `BUSY Redis is busy running a script` errors.

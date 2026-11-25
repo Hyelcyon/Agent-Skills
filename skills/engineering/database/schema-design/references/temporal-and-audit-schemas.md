@@ -6,30 +6,42 @@ Engineering standards for point-in-time historical querying, audit compliance, a
 
 ## 1. Slowly Changing Dimensions (SCD Type 2)
 
-SCD Type 2 captures historical changes by creating a new record for every mutation, preserving previous states indefinitely:
+SCD Type 2 captures historical changes by creating a new record for every mutation using half-open intervals `[valid_from, valid_to)` so adjacent versions never overlap on boundary timestamps:
 
 ```sql
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
 CREATE TABLE product_price_history (
-  history_id BIGSERIAL PRIMARY KEY,
+  history_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   product_id UUID NOT NULL,
-  price NUMERIC(12, 2) NOT NULL,
+  price NUMERIC(12, 2) NOT NULL CHECK (price >= 0),
   currency VARCHAR(3) NOT NULL DEFAULT 'USD',
   valid_from TIMESTAMPTZ NOT NULL,
   valid_to TIMESTAMPTZ NOT NULL DEFAULT 'infinity'::timestamptz,
   is_current BOOLEAN NOT NULL DEFAULT TRUE,
-  CONSTRAINT check_time_order CHECK (valid_from < valid_to)
+  CONSTRAINT check_time_order CHECK (valid_from < valid_to),
+  CONSTRAINT excl_product_price_no_overlap EXCLUDE USING gist (
+    product_id WITH =,
+    tstzrange(valid_from, valid_to, '[)') WITH &&
+  )
 );
+
+CREATE UNIQUE INDEX uq_product_price_current
+ON product_price_history (product_id)
+WHERE is_current;
 
 CREATE INDEX idx_product_price_temporal
 ON product_price_history (product_id, valid_from, valid_to);
 ```
 
 ### Querying Point-in-Time Price
+Never use `BETWEEN` (inclusive on both endpoints and matches two rows at exact transition timestamps); query half-open bounds `[valid_from, valid_to)`:
 ```sql
-SELECT price
+SELECT price, currency
 FROM product_price_history
-WHERE product_id = 'prod_442'
-  AND '2026-06-15 10:00:00+00'::timestamptz BETWEEN valid_from AND valid_to;
+WHERE product_id = '0192b8e0-7c10-7a4b-9e12-000000000442'::uuid
+  AND valid_from <= '2026-06-15 10:00:00+00'::timestamptz
+  AND '2026-06-15 10:00:00+00'::timestamptz < valid_to;
 ```
 
 ---
@@ -49,7 +61,7 @@ Track the exact actor, timestamp, and field diff for every table update:
 
 ```sql
 CREATE TABLE audit_trail (
-  audit_id BIGSERIAL PRIMARY KEY,
+  audit_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   table_name TEXT NOT NULL,
   operation TEXT NOT NULL,
   record_id TEXT NOT NULL,

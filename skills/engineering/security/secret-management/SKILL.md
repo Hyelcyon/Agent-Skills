@@ -49,12 +49,13 @@ gitleaks detect --source . --verbose
 ```
 
 ### Phase 5: Verification & Remediation Proof
-If a leak occurs, immediately revoke and rotate compromised credentials. Purge commit history using `git-filter-repo` and verify clean repository scan output.
+If a leak occurs, **revoke and rotate the exposed credential first** before cleaning history (removing git commits without rotation leaves active keys exposed in forks/caches). Purge history via `git-filter-repo` only with explicit team/user authorization, then confirm zero hits with `gitleaks`.
 
 ---
 
-## Prohibited Anti-Patterns
+## Prohibited Anti-Patterns & Fatal Mistakes
 
+- ❌ Rewriting or force-pushing shared git history (`git-filter-repo`, `git push --force`) without revoking leaked tokens first and obtaining explicit user authorization.
 - ❌ Storing secrets, passwords, or private keys directly in source code or git history.
 - ❌ Checking plaintext `.env` files into version control.
 - ❌ Using static root database credentials in production application pods.

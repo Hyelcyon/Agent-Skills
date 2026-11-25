@@ -1,6 +1,7 @@
 import asyncio
 from typing import Any
 
+
 async def fetch_tenant_metric(tenant_id: str, delay: float) -> dict[str, Any]:
     await asyncio.sleep(delay)
     return {"tenant_id": tenant_id, "status": "active", "throughput": 150}

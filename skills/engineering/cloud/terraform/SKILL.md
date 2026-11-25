@@ -31,6 +31,7 @@ This skill establishes the production standard for declarative Infrastructure as
 | Hardcoding secrets or credentials in `.tf` | Secret exposure in version control and state leaks | Use dynamic vault data sources or environment variables (`TF_VAR_...`) |
 | Monolithic state for entire enterprise | Slow execution, lock contention, catastrophic blast radius | Layer state into Foundation (VPC), Platform (EKS/RDS), and Application tiers |
 | `ignore_changes = all` | Complete blindspot to out-of-band drifts and security regressions | Restrict `ignore_changes` to specific tags or autoscaling attributes |
+| Treating `-detailed-exitcode` exit `2` as failure | CI pipeline aborts on legitimate pending diffs | Explicitly handle exit code `0` (clean), `2` (diff present), and `1` (error) |
 
 ---
 
@@ -105,22 +106,17 @@ moved {
   to   = aws_security_group.alb
 }
 ```
+When decommissioning stateful resources without destroying underlying cloud objects, use a `removed` block with `lifecycle { destroy = false }` rather than risky manual `terraform state rm`.
 
 ### Phase 4: Plan Artifact Generation & Review Gate
-Generate deterministic plan file and verify change summary:
+Generate a binary plan file and remember that `-detailed-exitcode` returns `0` (no diff), `1` (error), and `2` (diff present — handle `2` explicitly under `set -e`):
 ```bash
-# Lint syntax and provider rules
 tflint
-
-# Format validation
 terraform fmt -check -diff
-
-# Generate isolated plan artifact
 terraform plan -out=tfplan -detailed-exitcode
-
-# Inspect planned actions (must show 0 to destroy unless explicitly planned)
-terraform show -json tfplan | jq '.resource_changes[] | select(.change.actions[] == "delete")'
+terraform show -json tfplan
 ```
+Never execute `terraform apply tfplan` or `terraform destroy` without explicit user authorization after inspecting planned deletions/replacements.
 
 ### Phase 5: Controlled Application & Drift Audit
 Apply the identical binary plan file to eliminate race conditions:
@@ -128,7 +124,7 @@ Apply the identical binary plan file to eliminate race conditions:
 # Apply exact plan artifact
 terraform apply tfplan
 
-# Verify idempotency (must return exit code 0 and 'No changes')
+# Verify idempotency (exit code 0 means zero pending drift; 2 means unexpected drift)
 terraform plan -detailed-exitcode
 ```
 

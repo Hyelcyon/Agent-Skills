@@ -31,6 +31,7 @@ This skill establishes the production standard for full-stack observability. It 
 | `rate(sum(metric[5m]))` in PromQL | Erroneous rate calculation when pods restart (counter resets missed) | Enforce `sum(rate(metric[5m]))` across all dashboards and alerting rules |
 | Single-window alerts without burn rates | Alert fatigue (flapping alerts on short spikes; missed slow burns) | Implement multi-window multi-burn-rate SLO alerting (e.g., 1h and 6h windows) |
 | Monolithic in-process telemetry exporters | High application latency overhead and memory buffer bloat | Offload export to an out-of-process OpenTelemetry Collector daemon or sidecar |
+| PromQL burn rate missing `by (service)` or `shutdown()` | Empty alert labels, division-by-zero NaNs, dropped spans on exit | Aggregate `by (service)`, guard denominator with `clamp_min(..., 1e-9)`, register `provider.shutdown()` |
 
 ---
 
@@ -72,8 +73,9 @@ ALLOWED_LABELS = ("http_method", "http_route", "http_status_code")
 ```
 
 ### Phase 2: Context Propagation & Tracing Setup
-Initialize OpenTelemetry with non-blocking batch span processing:
+Initialize OpenTelemetry with non-blocking batch span processing, restrict `insecure=True` strictly to localhost/same-pod TLS-terminated collectors, and flush spans cleanly via `provider.shutdown()` on exit:
 ```python
+import atexit
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -82,9 +84,10 @@ from opentelemetry.sdk.resources import Resource
 
 resource = Resource.create({"service.name": "order-api", "service.version": "1.0.0"})
 provider = TracerProvider(resource=resource)
-processor = BatchSpanProcessor(OTLPSpanExporter(endpoint="otel-collector:4317", insecure=True))
+processor = BatchSpanProcessor(OTLPSpanExporter(endpoint="127.0.0.1:4317", insecure=True))
 provider.add_span_processor(processor)
 trace.set_tracer_provider(provider)
+atexit.register(provider.shutdown)
 ```
 
 ### Phase 3: Deterministic Metric & Log Correlation
@@ -112,20 +115,26 @@ promtool test rules ./resources/promtool.tests.yaml
 ```
 
 ### Phase 5: Production Dashboards & SLO Alerting Gates
-Implement multi-burn-rate alerting for a 99.9% availability SLO:
+Implement dual-window (`1h` AND `5m`) multi-burn-rate alerting per `service` for a 99.9% availability SLO (`by (service)` preserves label cardinality for Alertmanager routing and prevents silent `NaN` masking):
 ```yaml
 - alert: ErrorBudgetBurnRateFast
   expr: |
     (
-      sum(rate(http_requests_total{status=~"5.."}[1h]))
+      sum by (service) (rate(http_requests_total{status=~"5.."}[1h]))
       /
-      sum(rate(http_requests_total[1h]))
+      clamp_min(sum by (service) (rate(http_requests_total[1h])), 1e-9)
+    ) > (14.4 * (1 - 0.999))
+    and
+    (
+      sum by (service) (rate(http_requests_total{status=~"5.."}[5m]))
+      /
+      clamp_min(sum by (service) (rate(http_requests_total[5m])), 1e-9)
     ) > (14.4 * (1 - 0.999))
   for: 2m
   labels:
     severity: page
   annotations:
-    summary: "High error budget consumption rate (14.4x burn rate over 1h)"
+    summary: "High error budget burn rate (14.4x over 1h and 5m) on {{ $labels.service }}"
 ```
 
 ---

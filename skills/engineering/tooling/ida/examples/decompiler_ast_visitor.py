@@ -1,6 +1,6 @@
 import ida_hexrays
-import ida_funcs
 import ida_name
+
 
 class CallTargetVisitor(ida_hexrays.ctree_visitor_t):
     def __init__(self):

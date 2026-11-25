@@ -56,6 +56,7 @@ if ! flock -n 200; then
   exit 1
 fi
 ```
+Never delete `${LOCK_FILE}` inside `cleanup()`—unlinking an open `flock` file lets concurrent processes open a new inode and bypass mutual exclusion.
 
 ---
 

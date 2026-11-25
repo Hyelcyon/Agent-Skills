@@ -1,6 +1,7 @@
+-- Supply monotonic UUIDv7 for id from application layer (or DEFAULT uuidv7() on PostgreSQL 18+)
 CREATE TABLE entity_base (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
-    version INT NOT NULL DEFAULT 1
+    id UUID PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    version INT NOT NULL DEFAULT 1 CHECK (version >= 1)
 );

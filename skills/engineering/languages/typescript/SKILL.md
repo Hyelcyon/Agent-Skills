@@ -30,7 +30,7 @@ Phase 5: Type-Check & Build Evidence (tsc --noEmit)
 ```
 
 ### Phase 1: Compiler & Configuration Inspection
-Inspect `tsconfig.json` to verify strict flags: `strict: true`, `noUncheckedIndexedAccess: true`, `isolatedDeclarations: true`, `erasableSyntaxOnly: true`.
+Inspect `tsconfig.json` to verify strict flags: `strict: true`, `noUncheckedIndexedAccess: true`, `erasableSyntaxOnly: true` (required for Node 22.18+/24+/26+ native type-stripping), and `isolatedDeclarations: true` when authoring publishable libraries or shared monorepo packages.
 
 ### Phase 2: Domain Boundary Definition
 Represent domain states with discriminated unions to make invalid states unrepresentable. Preserve literal types using `as const` and validate structure via `satisfies`:
@@ -68,13 +68,13 @@ npx tsc --noEmit
 
 ---
 
-## Prohibited Anti-Patterns
+## Prohibited Anti-Patterns & Fatal Mistakes
 
-- ❌ Using `any` (Use `unknown` + type narrowing instead).
-- ❌ Non-null assertion operator `!` (Use explicit guard statements).
-- ❌ TypeScript-only runtime constructs like `enum` or `namespace` (Use `as const` objects).
-- ❌ Empty interfaces (`interface Foo {}`).
-- ❌ Implicit index signature lookups without undefined checks.
+- ❌ Using `any` or silencing compiler diagnostics with bare `@ts-ignore` (use `unknown` + narrowing).
+- ❌ Casting unvalidated `JSON.parse()` / HTTP payloads directly `as DomainType` without runtime validation.
+- ❌ Non-null assertion operator `!` (use explicit guard statements).
+- ❌ TypeScript-only runtime constructs like `enum`, parameter properties, or `namespace` (breaks `erasableSyntaxOnly`).
+- ❌ Empty interfaces (`interface Foo {}`) or implicit index signature lookups without undefined checks.
 
 ---
 

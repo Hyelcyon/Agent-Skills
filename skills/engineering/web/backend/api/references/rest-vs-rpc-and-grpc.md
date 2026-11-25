@@ -21,7 +21,7 @@ Engineering standards for selecting and implementing synchronous client-server i
 - **Default to REST for**:
   - Public-facing developer APIs where third-party consumers expect standard HTTP methods (`GET`, `POST`, `PUT`, `DELETE`).
   - Webhooks and payment callback endpoints.
-  - CRUD resources where browser caching via `ETag` and `Cache-Control` is critical.
+  - CRUD resources where browser caching via `ETag` and `Cache-Control` is critical, or where YAGNI favors avoiding `.proto` codegen pipelines.
 - **Default to ConnectRPC / gRPC for**:
   - High-throughput internal microservice-to-microservice communication.
   - Real-time full-duplex data feeds (telemetry, live collaborative state).
@@ -31,17 +31,17 @@ Engineering standards for selecting and implementing synchronous client-server i
 
 ## 3. ConnectRPC Implementation Standards
 
-When implementing ConnectRPC handlers in TypeScript:
+When implementing ConnectRPC handlers in TypeScript, throw typed `ConnectError` codes instead of plain `Error` (which maps to `Code.Unknown`):
 
 ```typescript
-import { ConnectRouter } from '@connectrpc/connect';
+import { Code, ConnectError, type ConnectRouter } from '@connectrpc/connect';
 import { UserService } from './gen/user_pb';
 
 export function registerUserRoutes(router: ConnectRouter) {
   router.service(UserService, {
     async getUser(req) {
       if (!req.userId) {
-        throw new Error('UserId is required');
+        throw new ConnectError('userId is required', Code.InvalidArgument);
       }
       return {
         id: req.userId,

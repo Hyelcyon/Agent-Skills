@@ -76,5 +76,4 @@ cmake-build-*/
 *.log
 *.tmp
 *.bak
-*.swp
 .cache/

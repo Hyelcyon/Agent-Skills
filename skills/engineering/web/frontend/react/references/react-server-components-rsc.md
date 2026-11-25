@@ -27,11 +27,13 @@ React Server Components divide the rendering graph into two distinct environment
 A common misconception is that a Server Component cannot be placed inside a Client Component. While a Client Component cannot directly `import` a Server Component, it CAN accept a Server Component passed as `children` or as a JSX prop:
 
 ```tsx
+'use client';
+
 export function ClientWrapper({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
-      <button onClick={() => setIsOpen(!isOpen)}>Toggle</button>
+      <button type="button" onClick={() => setIsOpen(!isOpen)}>Toggle</button>
       {isOpen && children}
     </div>
   );

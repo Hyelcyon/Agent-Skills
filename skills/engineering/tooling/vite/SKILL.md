@@ -41,12 +41,12 @@ Before compiling or setting environment variables:
 3. If private secrets are found, move them to server-side endpoints or backend environment variables.
 
 ### Phase 3: Manual Chunk Splitting
-Configure `build.rollupOptions.output.manualChunks` to prevent monolithic bundle bloat:
-- Isolate framework libraries (`react`, `react-dom`, `@tanstack/react-query`) into dedicated vendor chunks (`vendor-react`, `vendor-query`).
+Configure `build.rollupOptions.output.manualChunks` carefully to balance caching and initialization order:
+- Isolate framework libraries (`react`, `react-dom`, `@tanstack/react-query`) into dedicated vendor chunks (`vendor-react`, `vendor-query`), watching closely for circular dependency TDZ crashes (`Cannot access 'X' before initialization`) between manually split chunks.
 - Keep rapidly mutating business logic in application chunks to maximize browser caching efficiency.
 
 ### Phase 4: Production Build & Asset Verification
-Execute the production build and verify the output artifacts:
+Execute the production build and inspect `dist/` assets and chunk warnings:
 ```bash
 npx vite build
 ```
@@ -55,17 +55,13 @@ Verify that:
 - Source maps (`.map`) are generated if configured, or omitted for public production deployments.
 - CSS is properly code-split and minified.
 
-### Phase 5: Local Production Verification
-Never declare the build successful without testing the static output:
-```bash
-npx vite preview --port 4173
-```
-Verify that client-side SPA routing functions correctly and no 404s occur on static assets.
+### Phase 5: Local Production Verification (Non-Blocking)
+Never run `npx vite preview` as a blocking synchronous command inside an agent shell (the process stays alive indefinitely until killed). Start `vite preview --port 4173` as an explicit daemon/background process when runtime smoke verification is needed, verify asset HTTP responses, and terminate cleanly afterwards.
 
 ---
 
 ## 2. Critical Anti-Patterns to Avoid
-- ❌ Running `vite dev` or `vite preview` inside production Docker containers.
+- ❌ Running `vite dev` or `vite preview` synchronously inside automated verification shells or inside production containers.
 - ❌ Prefixing sensitive backend credentials with `VITE_` (statically bakes secrets into client bundles).
 - ❌ Leaving default Rollup chunking on complex applications (creates bloated multi-megabyte bundles).
 - ❌ Importing through large barrel files (`import { X } from '@/components'`) without tree-shaking verification.

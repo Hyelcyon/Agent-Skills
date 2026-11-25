@@ -22,14 +22,17 @@ To harden a sensitive directory containing credentials, keys, or binaries:
 ```powershell
 $dirPath = "C:\ProgramData\EnterpriseApp"
 
-# 1. Disable inheritance and remove inherited ACEs (/inheritance:r)
-# 2. Grant SYSTEM full control for subfolders and files (OI)(CI)F
-# 3. Grant local Administrators full control (OI)(CI)F
-# 4. Grant specific service user modify rights
-icacls $dirPath /inheritance:r `
-    /grant:r "NT AUTHORITY\SYSTEM:(OI)(CI)F" `
-    /grant:r "BUILTIN\Administrators:(OI)(CI)F" `
-    /grant:r "NT SERVICE\EnterpriseApp:(OI)(CI)M"
+$icaclsArgs = @(
+    $dirPath,
+    '/inheritance:r',
+    '/grant:r', 'NT AUTHORITY\SYSTEM:(OI)(CI)F',
+    '/grant:r', 'BUILTIN\Administrators:(OI)(CI)F',
+    '/grant:r', 'NT SERVICE\EnterpriseApp:(OI)(CI)M'
+)
+& icacls.exe @icaclsArgs
+if ($LASTEXITCODE -ne 0) {
+    throw "icacls.exe failed with exit code $LASTEXITCODE"
+}
 ```
 
 ---

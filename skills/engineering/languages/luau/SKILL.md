@@ -26,7 +26,7 @@ Phase 1: Script Environment & Mode Profiling (--!strict, --!native)
 Phase 2: Data Model & Type Contract Definition (export type)
 Phase 3: Prototype & Metatable Allocation (Zero closure penalty)
 Phase 4: Signal Lifecycle & Memory Management (Janitor, :Destroy())
-Phase 5: Linter & Analysis Verification (selene, luau-lsp)
+Phase 5: Linter & Analysis Verification (selene, luau-analyze)
 ```
 
 ### Phase 1: Script Mode Profiling

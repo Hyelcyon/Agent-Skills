@@ -19,19 +19,29 @@
   </style>
 </head>
 <body>
-  <button type="button" onclick="document.getElementById('native-modal').showModal()">Open Dialog</button>
-  <button type="button" popovertarget="info-popover">Toggle Popover</button>
+  <main>
+    <h1>Native Dialog and Popover Controls</h1>
+    <button type="button" id="open-modal-btn">Open Dialog</button>
+    <button type="button" popovertarget="info-popover">Toggle Popover</button>
 
-  <dialog id="native-modal">
-    <form method="dialog">
-      <h2>Native Accessible Modal</h2>
-      <p>Uses top-layer rendering with automatic background inertia.</p>
-      <button value="close">Close Dialog</button>
-    </form>
-  </dialog>
+    <dialog id="native-modal">
+      <form method="dialog">
+        <h2>Native Accessible Modal</h2>
+        <p>Uses top-layer rendering with automatic background inertia.</p>
+        <button type="submit" value="close">Close Dialog</button>
+      </form>
+    </dialog>
 
-  <div id="info-popover" popover="auto">
-    <p>Native top-layer popover with automatic light-dismiss.</p>
-  </div>
+    <div id="info-popover" popover="auto">
+      <p>Native top-layer popover with automatic light-dismiss.</p>
+    </div>
+  </main>
+
+  <script type="module">
+    const modal = document.getElementById('native-modal');
+    document.getElementById('open-modal-btn')?.addEventListener('click', () => {
+      modal?.showModal();
+    });
+  </script>
 </body>
 </html>

@@ -67,3 +67,12 @@ function transitionView(domUpdate: () => void): void {
    - Trap keyboard focus within modal bounds while open.
    - Close modal upon pressing `Escape`.
    - Restore keyboard focus to the triggering element upon closure.
+
+---
+
+## 4. Baseline UI & Playwright E2E Verification Hygiene
+
+- **Dynamic Viewport & Scroll Containment**: Use `min-height: 100dvh` instead of `100vh`, `scrollbar-gutter: stable` on `html` to prevent modal scroll-lock jitter, and `overscroll-behavior: contain` inside scrollable drawers/modals.
+- **Overflow & Hit Hygiene**: Add `min-width: 0` to Flex/Grid text containers (`overflow-wrap: anywhere` / truncation) and `touch-action: manipulation` on buttons/controls.
+- **URL State Persistence**: Synchronize active tabs, filters, and drawers to URL search parameters so refresh and shared links preserve view state.
+- **User-Centric E2E Testing (Playwright)**: Query elements strictly by accessible roles and labels (`page.getByRole('dialog')`, `page.getByLabel('Email')`), assert Web-First visibility (`await expect(...).toBeVisible()`), and ban arbitrary sleeps (`waitForTimeout`) or class-based locators.

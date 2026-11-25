@@ -39,8 +39,8 @@ Preload critical viewport resources. Set `fetchpriority="high"` on hero images a
 <img src="/hero.webp" fetchpriority="high" width="1200" height="600" alt="Hero">
 ```
 
-### Phase 3: INP & Main-Thread Scheduling
-Break CPU-intensive JavaScript operations using `scheduler.yield()` or microtask chunking to keep the main thread responsive to user interactions:
+### Phase 3: INP, Canvas Throttling & Main-Thread Scheduling
+Break CPU-intensive JavaScript operations using `scheduler.yield()` or microtask chunking, move heavy WebGL/mesh geometry (`Float32Array`) into Web Workers, suspend canvas `requestAnimationFrame` loops when off-viewport (`IntersectionObserver`) or hidden (`visibilitychange`), and keep main-thread interactions responsive:
 ```typescript
 if (typeof scheduler !== 'undefined' && 'yield' in scheduler) {
   await scheduler.yield();

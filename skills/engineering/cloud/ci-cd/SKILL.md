@@ -42,20 +42,23 @@ Structure pipelines to build artifacts once. Restore lockfile-hashed package cac
 Distribute long test suites across matrix dimensions (`os`, `node-version`). Define separate failure boundaries so linting or audit failures fail fast before resource-heavy integration runs.
 
 ### Phase 5: Verification & Actionlint Validation
-Verify workflow syntax and shellcheck hygiene using actionlint before pushing changes:
+Verify workflow syntax, expression typing, and shellcheck hygiene using non-blocking local checks before pushing changes:
 ```bash
-actionlint .github/workflows/*.yml
+actionlint -config-file .github/actionlint.yaml .github/workflows/*.yml
 ```
+When debugging failing workflows, inspect the failing job log directly (`gh run view <run-id> --log-failed`) to trace the exact failing command and keep workflow fixes minimal and surgical.
 
 ---
 
-## Prohibited Anti-Patterns
+## Fatal Mistakes Never to Make / Prohibited Anti-Patterns
 
-- ❌ Using mutable action tags like `@v4` or `@main` without commit SHAs.
-- ❌ Granting unbounded top-level write permissions (`permissions: write-all`).
-- ❌ Storing long-lived cloud access keys in repository secrets (use OIDC).
+- ❌ Using mutable action tags like `@v4`, `@v3`, or `@master` without immutable 40-character commit SHAs.
+- ❌ Interpolating untrusted context expressions (`${{ github.event.issue.title }}`, `${{ github.head_ref }}`, `${{ github.ref_name }}`) directly inside `run:` shell blocks (use `env:` handover).
+- ❌ Granting unbounded top-level write permissions (`permissions: write-all`) or leaving top-level write scopes enabled alongside third-party actions.
+- ❌ Storing long-lived static cloud access keys in repository secrets (use OIDC federation).
 - ❌ Rebuilding container images or binaries separately for each deployment environment.
-- ❌ Running pull request pipelines without concurrency cancellation.
+- ❌ Running pull request pipelines without concurrency cancellation, or cancelling `main`/trunk deployment workflows mid-run (`cancel-in-progress: true` without checking `github.event_name == 'pull_request'`).
+- ❌ Using `pull_request_target` while checking out the untrusted pull request head SHA (exposes repository secrets to arbitrary fork code).
 
 ---
 

@@ -17,7 +17,7 @@ if command -v grpc-health-probe >/dev/null 2>&1; then
   fi
 elif command -v grpcurl >/dev/null 2>&1; then
   RESPONSE=$(grpcurl -plaintext -d "{\"service\": \"$SERVICE_NAME\"}" "$TARGET_HOST:$TARGET_PORT" grpc.health.v1.Health/Check)
-  if echo "$RESPONSE" | grep -q "SERVING"; then
+  if echo "$RESPONSE" | grep -Eq '"status"[[:space:]]*:[[:space:]]*"SERVING"'; then
     echo "[PASS] grpcurl confirmed SERVING status."
     exit 0
   else

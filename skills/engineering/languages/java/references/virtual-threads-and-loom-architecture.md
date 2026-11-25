@@ -47,7 +47,6 @@ A virtual thread is pinned to its carrier thread when it cannot be unmounted dur
 
 ### Guidelines for Pinning Avoidance
 
-1. **Avoid Synchronized Blocks around I/O**: Replace `synchronized (lock)` blocks enclosing blocking network or disk I/O with `java.util.concurrent.locks.ReentrantLock`.
+1. **Monitor Pinning by JDK Version**: On **JDK 21–23**, replace `synchronized (lock)` blocks enclosing blocking network or disk I/O with `java.util.concurrent.locks.ReentrantLock`. On **JDK 24+ / Java 25 LTS** (JEP 491), virtual threads unmount cleanly inside `synchronized`; only native/JNI downcalls and static class initializers still pin.
 2. **Never Pool Virtual Threads**: Virtual threads are ephemeral and cheap to instantiate. Placing them inside bounded pools (`ThreadPoolExecutor`) is an anti-pattern.
-3. **Inspect Diagnostics**: Monitor carrier pinning events in production by passing the JVM flag:
-   `-Djdk.tracePinnedThreads=full`
+3. **Inspect Diagnostics**: On **JDK 24/25+**, capture JFR `jdk.VirtualThreadPinned` events (e.g., `jcmd <pid> JFR.start settings=profile`). On **JDK 21–23**, use `-Djdk.tracePinnedThreads=full` (removed in JDK 25).

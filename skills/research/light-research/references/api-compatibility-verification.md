@@ -33,13 +33,13 @@ Peer dependency warnings (`ERESOLVE could not resolve`) occur when two dependenc
 
 ## 3. Rapid Scratch API Verification
 
-Verify that an API behaves as documented by executing an isolated scratch script before introducing code changes into the main codebase:
+Verify that an API behaves as documented by executing an isolated scratch script before introducing code changes into the main codebase (here targeting `zod@4.x`, where top-level `z.uuid()` replaces `zod@3.x`'s deprecated `z.string().uuid()`):
 
 ```typescript
 import { z } from 'zod';
 
 const TestSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   count: z.number().int().positive(),
 });
 

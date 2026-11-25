@@ -48,11 +48,11 @@ When working on a pnpm-managed project or monorepo, the agent must execute these
 
 ### Phase 3: Deterministic Installation
 1. In local feature development: run `pnpm install`.
-2. In CI and verification environments: **always** mandate `pnpm install --frozen-lockfile`.
+2. In CI and verification environments: **always** mandate `pnpm install --frozen-lockfile`. Note pnpm v10+ blocks dependency postinstall build scripts by default — explicitly allowlist required native builds via `onlyBuiltDependencies` instead of bypassing checks globally.
 3. If peer dependency issues occur, resolve them via `pnpm.packageExtensions` rather than disabling strict checks.
 
 ### Phase 4: Filtered Subgraph Execution
-Do not execute blanket monorepo builds when only one package changed. Use targeted graph filters:
+Do not execute blanket monorepo builds when only one package changed. Use targeted graph filters (ensure CI checks out full git depth, because shallow clones break `...[origin/main]` diffing):
 - Build a single package and its dependencies:
   ```bash
   pnpm --filter @scope/web-app... run build

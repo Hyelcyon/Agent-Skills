@@ -20,8 +20,11 @@ Replaces manual `isLoading` state, try/catch blocks, and error state variables:
 ```tsx
 const [state, formAction, isPending] = useActionState(
   async (prevState: FormState, formData: FormData) => {
-    const email = formData.get('email') as string;
-    const result = await subscribeUser(email);
+    const rawEmail = formData.get('email');
+    if (typeof rawEmail !== 'string' || !rawEmail.trim()) {
+      return { status: 'error', message: 'Valid email is required' };
+    }
+    const result = await subscribeUser(rawEmail.trim());
     if (!result.success) {
       return { status: 'error', message: result.error };
     }

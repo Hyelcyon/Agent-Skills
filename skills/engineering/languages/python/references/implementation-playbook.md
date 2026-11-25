@@ -8,11 +8,9 @@ Detailed reference for high-throughput concurrency, custom type guards, and zero
 
 ```python
 import threading
-from typing import Generic, TypeVar
 
-T = TypeVar("T")
 
-class ThreadSafeRegistry(Generic[T]):
+class ThreadSafeRegistry[T]:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._store: dict[str, T] = {}
@@ -31,20 +29,23 @@ class ThreadSafeRegistry(Generic[T]):
 ## 2. Advanced Generic Protocols and Runtime Checkable
 
 ```python
+from decimal import Decimal
 from typing import Protocol, runtime_checkable
+
 
 @runtime_checkable
 class Serializable(Protocol):
     def serialize(self) -> dict[str, object]:
         ...
 
+
 class TransactionRecord:
-    def __init__(self, tx_id: str, amount: float) -> None:
+    def __init__(self, tx_id: str, amount: Decimal) -> None:
         self.tx_id = tx_id
         self.amount = amount
 
     def serialize(self) -> dict[str, object]:
-        return {"id": self.tx_id, "amount": self.amount}
+        return {"id": self.tx_id, "amount": str(self.amount)}
 ```
 
 ---
@@ -52,7 +53,9 @@ class TransactionRecord:
 ## 3. High-Performance Pydantic Root Validations
 
 ```python
+from typing import Self
 from pydantic import BaseModel, ConfigDict, model_validator
+
 
 class DateRange(BaseModel):
     model_config = ConfigDict(strict=True, frozen=True)
@@ -60,7 +63,7 @@ class DateRange(BaseModel):
     end_date: int
 
     @model_validator(mode="after")
-    def validate_chronology(self) -> "DateRange":
+    def validate_chronology(self) -> Self:
         if self.start_date > self.end_date:
             raise ValueError("start_date cannot follow end_date")
         return self

@@ -12,10 +12,11 @@ Composables encapsulate stateful business logic. Senior guidelines dictate:
    - Accept arguments that can be raw values, `Ref<T>`, or getter functions (`() => T`).
    - Use `toValue()` from Vue to normalize and unwrap the input automatically:
      ```typescript
-     import { toValue, type MaybeRefOrGetter } from 'vue';
+     import { computed, toValue, type MaybeRefOrGetter } from 'vue';
 
      export function useMultiplier(factor: MaybeRefOrGetter<number>) {
        const resolvedFactor = computed(() => toValue(factor));
+       return { resolvedFactor };
      }
      ```
 3. **Return Plain Objects with Refs**:

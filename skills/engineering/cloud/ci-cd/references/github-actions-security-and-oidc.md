@@ -9,6 +9,9 @@ Static long-lived cloud credentials (such as AWS access key pairs or Google Clou
 ### AWS OIDC Federation Configuration
 
 ```yaml
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -17,10 +20,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Configure AWS Credentials via OIDC
-        uses: aws-actions/configure-aws-credentials@e3ddf14a3dc1a892e2fb21f66fd8273dca71cadd
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           role-to-assume: arn:aws:iam::123456789012:role/github-actions-production-deploy
           aws-region: us-east-1
@@ -58,9 +61,9 @@ Tag references like `@v4` or `@main` can be modified or hijacked upstream if a d
 ```yaml
 steps:
   - name: Checkout Code
-    uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
   - name: Setup Node
-    uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+    uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
     with:
       node-version: 22
 ```

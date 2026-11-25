@@ -8,6 +8,11 @@ html {
   color-scheme: light dark;
   hanging-punctuation: first last;
   interpolate-size: allow-keywords;
+  scrollbar-gutter: stable;
+}
+
+button, [role="button"], summary, a {
+  touch-action: manipulation;
 }
 
 body {

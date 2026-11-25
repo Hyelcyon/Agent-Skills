@@ -84,7 +84,8 @@ impl AlignedBuffer {
 
 impl Drop for AlignedBuffer {
     fn drop(&mut self) {
-        let layout = std::alloc::Layout::from_size_align(self.capacity, 64).unwrap();
+        let layout = std::alloc::Layout::from_size_align(self.capacity, 64)
+            .expect("invariant: layout validated during AlignedBuffer::allocate");
         unsafe {
             std::alloc::dealloc(self.ptr.as_ptr(), layout);
         }

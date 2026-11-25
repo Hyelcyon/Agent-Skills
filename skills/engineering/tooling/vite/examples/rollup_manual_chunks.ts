@@ -1,9 +1,10 @@
 export function vendorChunkSplitter(id: string): string | undefined {
-  if (id.includes('node_modules')) {
-    if (id.includes('react') || id.includes('react-dom')) {
+  const normalizedId = id.replaceAll('\\', '/');
+  if (normalizedId.includes('/node_modules/')) {
+    if (/\/node_modules\/(?:react|react-dom|scheduler)\//.test(normalizedId)) {
       return 'vendor-react';
     }
-    if (id.includes('@tanstack') || id.includes('zustand')) {
+    if (/\/node_modules\/(?:@tanstack|zustand)\//.test(normalizedId)) {
       return 'vendor-state';
     }
     return 'vendor-core';

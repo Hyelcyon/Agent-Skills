@@ -23,12 +23,12 @@ A comprehensive runbook for enterprise-grade Git hygiene, atomic commit architec
 
 ## 5-Phase Agent Operational Protocol
 
-```
-Phase 1: Working Tree & Status Inspection (git status, untracked checks)
+```text
+Phase 1: Working Tree & Status Inspection (git status -s, git diff)
 Phase 2: Staging Boundary Isolation (git add -p, atomic change scoping)
 Phase 3: Imperative Commit Crafting (type(scope): summary in imperative mood)
 Phase 4: History Hygiene & Linear Rebase (rebase on origin/main, fixup)
-Phase 5: Push Verification & Integrity Proof (git push --force-with-lease)
+Phase 5: Push Verification (only on user request: --force-with-lease --force-if-includes)
 ```
 
 ### Phase 1: Working Tree & Status Inspection
@@ -38,7 +38,7 @@ Inspect repository state with `git status -s` and `git diff`. Verify branch topo
 Stage files atomically using `git add -p` or specific file paths. Separate refactoring, style updates, and functional changes into independent commits.
 
 ### Phase 3: Imperative Commit Crafting
-Formulate commit messages completing the statement: *"If applied, this commit will..."*:
+Formulate commit messages completing the statement: *"If applied, this commit will..."*. Only create commits when explicitly requested by the user:
 ```text
 feat(auth): add jwt token refresh handler
 fix(db): prevent deadlocks during concurrent migrations
@@ -48,17 +48,18 @@ fix(db): prevent deadlocks during concurrent migrations
 Rebase feature branches against `origin/main`. Squash intermediate fixup commits using `git rebase -i` to maintain a clean linear commit graph.
 
 ### Phase 5: Verification & Safe Propagation
-Verify the test suite passes on the rebased HEAD commit. Push updates safely using `git push --force-with-lease`.
+Verify tests pass on the rebased HEAD commit. Push only when explicitly requested by the user; when updating rebased feature branches use `git push --force-with-lease --force-if-includes` so concurrent remote updates fetched in the background are not silently overwritten.
 
 ---
 
-## Prohibited Anti-Patterns
+## Prohibited Anti-Patterns & Fatal Mistakes
 
+- ❌ Running `git commit`, `git push`, `git reset --hard`, or `git checkout --` on shared/unrequested user work without explicit user authorization.
 - ❌ Non-atomic commits combining unrelated features, fixes, and formatting.
 - ❌ Non-imperative commit messages (e.g. `Fixed bug`, `Changes`, `WIP`).
-- ❌ Force pushing with `--force` on shared branches (mandate `--force-with-lease`).
+- ❌ Force pushing with `--force` (or `--force-with-lease` without `--force-if-includes`) on shared branches.
 - ❌ Leaving sensitive credential files or build artifacts in repository history.
-- ❌ Staging entire directories with `git add .` without reviewing diffs.
+- ❌ Staging entire directories with `git add .` without reviewing diffs (`git status -s` / `git diff`).
 
 ---
 

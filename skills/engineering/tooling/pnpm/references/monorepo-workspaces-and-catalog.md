@@ -71,9 +71,9 @@ When publishing to npm registry via `pnpm publish`, pnpm replaces `workspace:*` 
 Never run builds sequentially across all packages when only a single component changes. Execute targeted commands using pnpm filters:
 
 ```bash
-pnpm --filter @enterprise/web-app... build
-pnpm --filter ...[origin/main] test
-pnpm --filter @enterprise/core... --filter !@enterprise/legacy test
+pnpm --filter "@enterprise/web-app..." build
+pnpm --filter "...[origin/main]" test
+pnpm --filter "@enterprise/core..." --filter "!@enterprise/legacy" test
 ```
 
 - **`--filter <pkg>...`**: Builds the target package and all of its dependencies.

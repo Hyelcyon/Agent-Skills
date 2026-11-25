@@ -1,0 +1,9 @@
+{
+  "name": "codex-engineering-skills",
+  "version": "1.0.0",
+  "description": "Verified Codex CLI and App skills with explicit invocation policies.",
+  "skills": [
+    "./skills/release-gatekeeper",
+    "./skills/schema-auditor"
+  ]
+}

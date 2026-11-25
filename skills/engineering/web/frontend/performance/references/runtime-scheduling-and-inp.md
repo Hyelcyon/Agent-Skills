@@ -24,12 +24,12 @@ A Long Task is any JavaScript execution on the main thread that blocks execution
 
 ```typescript
 export async function yieldToMain(): Promise<void> {
-  const nav = globalThis.navigator as unknown as {
-    scheduling?: { yield?: () => Promise<void> };
-  };
+  const globalScheduler = (
+    globalThis as unknown as { scheduler?: { yield?: () => Promise<void> } }
+  ).scheduler;
 
-  if (typeof nav.scheduling?.yield === 'function') {
-    return nav.scheduling.yield();
+  if (typeof globalScheduler?.yield === 'function') {
+    return globalScheduler.yield();
   }
 
   return new Promise((resolve) => {

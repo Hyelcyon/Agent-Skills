@@ -8,6 +8,7 @@ const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disab
 
 function createAccessibleModal(dialogElement: HTMLElement, triggerElement?: HTMLElement): ModalController {
   let previouslyFocusedElement: HTMLElement | null = null;
+  let isOpen = false;
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
@@ -18,13 +19,12 @@ function createAccessibleModal(dialogElement: HTMLElement, triggerElement?: HTML
 
     if (event.key === 'Tab') {
       const focusable = Array.from(dialogElement.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
-      if (focusable.length === 0) {
+      const firstElement = focusable[0];
+      const lastElement = focusable[focusable.length - 1];
+      if (!firstElement || !lastElement) {
         event.preventDefault();
         return;
       }
-
-      const firstElement = focusable[0];
-      const lastElement = focusable[focusable.length - 1];
 
       if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault();
@@ -37,6 +37,8 @@ function createAccessibleModal(dialogElement: HTMLElement, triggerElement?: HTML
   };
 
   const open = () => {
+    if (isOpen) return;
+    isOpen = true;
     previouslyFocusedElement = (triggerElement ?? document.activeElement) as HTMLElement | null;
     dialogElement.setAttribute('aria-modal', 'true');
     dialogElement.setAttribute('role', 'dialog');
@@ -44,15 +46,17 @@ function createAccessibleModal(dialogElement: HTMLElement, triggerElement?: HTML
 
     dialogElement.addEventListener('keydown', handleKeyDown);
 
-    const focusable = dialogElement.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-    if (focusable.length > 0) {
-      focusable[0].focus();
+    const firstFocusable = dialogElement.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    if (firstFocusable) {
+      firstFocusable.focus();
     } else {
       dialogElement.focus();
     }
   };
 
   const close = () => {
+    if (!isOpen) return;
+    isOpen = false;
     dialogElement.removeEventListener('keydown', handleKeyDown);
     dialogElement.setAttribute('hidden', '');
 
@@ -63,6 +67,7 @@ function createAccessibleModal(dialogElement: HTMLElement, triggerElement?: HTML
 
   const destroy = () => {
     close();
+    dialogElement.removeEventListener('keydown', handleKeyDown);
   };
 
   return { open, close, destroy };

@@ -58,7 +58,7 @@ Native type stripping does not perform type checking. Production CI/CD pipelines
   "scripts": {
     "start": "node --experimental-strip-types src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --experimental-strip-types tests/**/*.test.ts"
+    "test": "node --test --experimental-strip-types \"tests/**/*.test.ts\""
   }
 }
 ```

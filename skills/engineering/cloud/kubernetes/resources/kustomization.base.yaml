@@ -3,9 +3,11 @@ kind: Kustomization
 
 namespace: production
 
-commonLabels:
-  app.kubernetes.io/managed-by: kustomize
-  app.kubernetes.io/part-of: core-platform
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/part-of: core-platform
 
 resources:
   - deployment.hardened.yaml

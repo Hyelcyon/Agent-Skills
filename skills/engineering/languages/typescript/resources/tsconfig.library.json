@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2024",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "declaration": true,
@@ -8,6 +8,9 @@
     "sourceMap": true,
     "composite": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "isolatedDeclarations": true,
+    "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "outDir": "./dist"

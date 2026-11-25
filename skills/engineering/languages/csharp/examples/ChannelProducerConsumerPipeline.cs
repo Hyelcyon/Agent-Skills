@@ -16,6 +16,7 @@ public sealed class ChannelProducerConsumerPipeline
 
     public ChannelProducerConsumerPipeline(int capacity = 50_000)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);
         var options = new BoundedChannelOptions(capacity)
         {
             FullMode = BoundedChannelFullMode.Wait,
@@ -27,11 +28,13 @@ public sealed class ChannelProducerConsumerPipeline
 
     public ValueTask EnqueueAsync(TelemetryEvent telemetryEvent, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(telemetryEvent);
         return _channel.Writer.WriteAsync(telemetryEvent, ct);
     }
 
     public async Task StartConsumerAsync(Func<TelemetryEvent, CancellationToken, Task> handler, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(handler);
         var reader = _channel.Reader;
         while (await reader.WaitToReadAsync(ct))
         {

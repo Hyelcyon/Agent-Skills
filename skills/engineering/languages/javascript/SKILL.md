@@ -58,7 +58,7 @@ const { promise, resolve, reject } = Promise.withResolvers();
 Verify code against the modern ESLint flat configuration and check with `node --test`:
 ```bash
 npx eslint src/
-node --test tests/**/*.test.js
+node --test 'tests/**/*.test.js'
 ```
 
 ---

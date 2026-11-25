@@ -18,7 +18,7 @@ In PostgreSQL, each client connection spawns a dedicated operating system backen
 | Pool Mode | Lifecycle | Prepared Statements | Best For |
 | :--- | :--- | :--- | :--- |
 | **Session** | Connection tied to client for entire session duration | Fully supported | Legacy apps requiring session variables |
-| **Transaction** | Connection released back to pool immediately after `COMMIT`/`ROLLBACK` | Supported via named prepared statements or protocol-level support | Modern OLTP microservices (Standard) |
+| **Transaction** | Connection released back to pool immediately after `COMMIT`/`ROLLBACK` | Supported in PgBouncer 1.21+ (`max_prepared_statements > 0`); older versions require disabling client prepared statements | Modern OLTP microservices (Standard) |
 | **Statement** | Connection released after every single SQL statement | Prohibited (multi-statement transactions break) | Simple single-query read replicas |
 
 ---
@@ -26,9 +26,9 @@ In PostgreSQL, each client connection spawns a dedicated operating system backen
 ## 3. Transaction Pooling Rules & Caveats
 
 When deploying PgBouncer in `pool_mode = transaction`:
-- **Forbid Session-Level State**: Statements like `SET timezone = 'UTC'` or `LISTEN / NOTIFY` fail or leak into subsequent transactions for other clients.
-- **Forbid Temporary Tables**: Session-bound `CREATE TEMP TABLE` instances leak or throw errors. Use `WITH` (CTE) or table variables.
-- **Configure Application Pool Sizing**:
-  Set application connection pool sizes (e.g. HikariCP, Prisma, pg-node) to small values:
-  $$\text{PoolSize} = (\text{CoreCount} \times 2) + \text{SpindleCount}$$
-  A fleet of 20 pods with 5 connections each (100 total) performs substantially better than 20 pods with 100 connections each (2,000 total).
+- **Forbid Session-Level State**: Statements like `SET timezone = 'UTC'` or `LISTEN / NOTIFY` leak across clients or fail. Use transaction-scoped `SET LOCAL` inside explicit `BEGIN ... COMMIT` blocks.
+- **Forbid Session Temporary Tables**: Session-bound `CREATE TEMP TABLE` instances leak or fail across pooled backends. Use `WITH` (CTEs), `VALUES` lists, `unnest()` arrays, or route to a dedicated session-mode pool.
+- **Budget Total Server Pool Size Across the Fleet**:
+  Keep total upstream PostgreSQL backend connections (`default_pool_size` in PgBouncer) bounded near the hardware saturation limit:
+  $$\text{TotalServerPool} \approx (\text{CoreCount} \times 2) + \text{EffectiveSpindleCount}$$
+  On modern NVMe/cloud SSD volumes, treat `EffectiveSpindleCount` as `0–1`, then divide the total budget across pods (e.g., 20 pods with 5 connections each = 100 client slots multiplexed onto 16–32 server connections), rather than sizing each pod to the full core formula.

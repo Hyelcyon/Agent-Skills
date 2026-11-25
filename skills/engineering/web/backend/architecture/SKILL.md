@@ -14,6 +14,7 @@ Architectural standards for crafting resilient, maintainable backend systems usi
 - Documenting architectural trade-offs using Architecture Decision Records (ADRs).
 
 ## When NOT to Use
+- Trivial single-table CRUD services where direct modular handlers suffice (apply YAGNI; never over-engineer Ports & Adapters + Outbox tables for zero complexity gain).
 - Writing low-level database queries or index tunings (use `query-optimization`).
 - Authoring HTTP endpoint routes or serialization schemas (use `api`).
 
@@ -55,13 +56,15 @@ npx depcruise --config .dependency-cruiser.js src/
 
 ---
 
-## Prohibited Anti-Patterns
+## Prohibited Anti-Patterns & Fatal Mistakes
 
+- ❌ Over-engineering 4-layer Hexagonal wrappers and `outbox_events` tables for simple CRUD modules with a single database (violates YAGNI).
 - ❌ Direct dual-writes to database and message broker without the transactional outbox pattern.
-- ❌ Core domain entities importing external frameworks or database drivers.
-- ❌ Leaking persistence or HTTP concepts into domain entity models.
-- ❌ Tight coupling across module boundaries without interface abstractions.
-- ❌ Splitting monoliths into microservices without establishing clear bounded contexts first.
+- ❌ Polling outbox tables without row-level locking (`FOR UPDATE SKIP LOCKED`) or lease timestamps (causes duplicate dispatches across worker replicas).
+- ❌ Permanently marking transient outbox delivery failures as `FAILED` on the first attempt without exponential backoff + jitter or Dead Letter Queue (DLQ) routing.
+- ❌ Consuming "at-least-once" events via check-then-insert (`SELECT` then `INSERT`) instead of an atomic `ON CONFLICT DO NOTHING` deduplication guard.
+- ❌ Invoking external payment/side-effect gateways without passing an idempotency key and guarding entity state with optimistic concurrency.
+- ❌ Core domain entities importing external frameworks, ORMs, or HTTP drivers, or splitting monoliths before establishing bounded contexts.
 
 ---
 

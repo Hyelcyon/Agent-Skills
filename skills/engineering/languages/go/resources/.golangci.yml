@@ -1,3 +1,4 @@
+# golangci-lint v1.x configuration (v2 uses `version: "2"` and folds gosimple into staticcheck)
 run:
   timeout: 5m
   tests: true

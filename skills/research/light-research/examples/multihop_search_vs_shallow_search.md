@@ -7,7 +7,7 @@ A side-by-side comparison demonstrating how superficial single-query searching c
 ## The Scenario
 
 A developer asks the agent:
-> *"We're building a Server Action form in our Next.js 15 App Router project. How should we manage form state and pending indicators in the client component?"*
+> *"We're building a Server Action login form in our Next.js 15 App Router project. How should we manage form state and pending indicators in the client component?"*
 
 The project's `package.json` contains:
 ```json
@@ -22,7 +22,7 @@ The project's `package.json` contains:
 
 ---
 
-## Anti-Pattern: Superficial Single-Query Search (The "대충 검색" Flaw)
+## Anti-Pattern: Superficial Single-Query Search (The "Quick-Glance" Flaw)
 
 ### 1. The Execution
 The agent thinks: *"I know how to handle form state in React."*
@@ -36,20 +36,18 @@ It glances at the top search snippet from a 2023 tutorial:
 ### 2. The Resulting Code (Broken & Deprecated)
 ```tsx
 'use client';
-import { useFormState } from 'react-dom'; // ❌ Deprecated in React 19!
-import { myAction } from '@/actions/auth';
+import { useFormState } from 'react-dom'; // ❌ Deprecated in React 19
+import { loginAction } from '@/actions/auth';
 
 export function LoginForm() {
-  // ❌ Deprecated in React 19:
-  const [state, formAction] = useFormState(myAction, null);
+  // ❌ Deprecated in React 19; renamed to useActionState in 'react'
+  const [state, formAction] = useFormState(loginAction, null);
   return <form action={formAction}>...</form>;
 }
 ```
 
 ### 3. The Failure
-When compiled, React 19 prints a deprecation warning:
-`Warning: useFormState is deprecated. Use useActionState instead.`
-Furthermore, the agent missed Next.js 15's native `<Form>` component introduced in `next/form`, which handles prefetching and client-side navigation automatically.
+React 19 deprecates `useFormState` (`react-dom`) in favor of `useActionState` (`react`), which also returns `isPending` directly as its third tuple element. Furthermore, blindly substituting Next.js 15's `<Form>` (`next/form`) for a Server Action POST mutation adds no prefetching (which only applies when `action` is a string URL path such as `action="/search"`).
 
 ---
 
@@ -59,34 +57,34 @@ Furthermore, the agent missed Next.js 15's native `<Form>` component introduced 
 The agent inspects `package.json` and notes:
 - `next`: `15.1.0`
 - `react`: `19.0.0`
-The query must target React 19 and Next.js 15.
+Queries must explicitly anchor to React 19 and Next.js 15.
 
 ### Step 2: Multi-Hop Execution
 - **Hop 1 (Discovery Query)**:
   ```text
-  site:nextjs.org/docs/app "form state" 15
+  site:nextjs.org/docs/app "Server Actions" "useActionState" 15
   ```
-  Result identifies Next.js 15 documentation pointing to React 19 hooks and `next/form`.
+  Result identifies Next.js 15 App Router guidance pointing to React 19's `useActionState` hook (and distinguishes URL-based `<Form action="/search">` from function-based Server Actions).
 
 - **Hop 2 (Deep Signature Extraction)**:
   ```text
-  site:react.dev/reference/rsc "useActionState"
+  site:react.dev/reference/react "useActionState"
   ```
   Extracts the exact React 19 signature:
   `const [state, formAction, isPending] = useActionState(fn, initialState, permalink?)`
-  *Key Discovery*: React 19's `useActionState` returns `isPending` directly as the 3rd element, eliminating the need for a separate child component with `useFormStatus`!
+  *Key Discovery*: `useActionState` returns `isPending` directly as the third tuple element, eliminating the need for a separate child component calling `useFormStatus`.
 
 - **Hop 3 (Falsification & Deprecation Hunting)**:
   ```text
   "useFormState" "react 19" "deprecated" OR "breaking change"
   ```
-  Confirmed: `useFormState` from `react-dom` is officially deprecated in React 19 and renamed to `useActionState` from `react`.
+  Confirmed: `useFormState` from `react-dom` is officially deprecated in React 19 and replaced by `useActionState` imported from `react`.
 
 ### Step 3: Empirical Scratch Verification
-The agent verifies the import resolution:
+The agent verifies the import resolution against the installed `react` types:
 ```typescript
 import { useActionState } from 'react';
-// Verified: exported directly from 'react' in 19.0.0
+// Verified: exported directly from 'react' in 19.0.0 with 3-tuple return
 ```
 
 ### Step 4: The Verified Production Solution
@@ -94,29 +92,28 @@ import { useActionState } from 'react';
 'use client';
 
 import { useActionState } from 'react';
-import Form from 'next/form';
-import { loginAction } from '@/actions/auth';
+import { loginAction, type AuthFormState } from '@/actions/auth';
 
-const initialState = { error: null, success: false };
+const initialState: AuthFormState = { error: null, success: false };
 
 export function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, initialState);
 
   return (
-    <Form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-4">
       <input name="email" type="email" required disabled={isPending} />
       <input name="password" type="password" required disabled={isPending} />
       <button type="submit" disabled={isPending}>
         {isPending ? 'Logging in...' : 'Sign In'}
       </button>
       {state.error && <p className="text-red-500">{state.error}</p>}
-    </Form>
+    </form>
   );
 }
 ```
 
 ### Conclusion
 By executing the 3-hop verification cycle and actively falsifying `useFormState`, the agent:
-1. Eliminated a deprecation warning before writing a single line of code.
-2. Discovered that `isPending` is now built directly into `useActionState`.
-3. Integrated Next.js 15's first-class `<Form>` primitive.
+1. Eliminated a React 19 deprecation before writing code.
+2. Used `isPending` directly from `useActionState` instead of extra `useFormStatus` wrapper components.
+3. Kept standard `<form action={formAction}>` semantics accurate for Server Action mutations instead of misapplying `next/form` prefetching claims.

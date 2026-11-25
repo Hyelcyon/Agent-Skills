@@ -50,14 +50,25 @@ export class VaultLeaseManager {
       return;
     }
 
-    const intervalMs = (secret.leaseDurationSeconds * 1000) / 2;
-    this.timer = setTimeout(async () => {
-      await this.renew(secret.leaseId, secret.leaseDurationSeconds);
+    this.stop();
+    const intervalMs = Math.max(1000, (secret.leaseDurationSeconds * 1000) / 2);
+    this.timer = setTimeout(() => {
+      void this.renew(secret.leaseId, secret.leaseDurationSeconds).catch((err: unknown) => {
+        console.error('Vault lease renewal failed; force re-authentication required:', err);
+      });
     }, intervalMs);
+    this.timer.unref();
+  }
+
+  public stop(): void {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
   }
 
   private async renew(leaseId: string, duration: number): Promise<void> {
-    await fetch(`${this.vaultEndpoint}/v1/sys/leases/renew`, {
+    const response = await fetch(`${this.vaultEndpoint}/v1/sys/leases/renew`, {
       method: 'POST',
       headers: {
         'X-Vault-Token': this.clientToken,
@@ -68,6 +79,9 @@ export class VaultLeaseManager {
         increment: duration,
       }),
     });
+    if (!response.ok) {
+      throw new Error(`Vault lease renewal HTTP ${response.status}`);
+    }
   }
 }
 ```

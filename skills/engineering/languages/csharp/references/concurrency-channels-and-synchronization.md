@@ -4,9 +4,9 @@ This reference defines thread safety, asynchronous pipeline design, and synchron
 
 ---
 
-## 1. System.Threading.Lock (.NET 9 / C# 13)
+## 1. System.Threading.Lock (.NET 9+ / C# 13)
 
-Prior to C# 13, synchronization relied on `Monitor.Enter` / `Monitor.Exit` over arbitrary reference objects (`lock (new object())`), which suffered from overhead and potential boxing issues. .NET 9 introduces a dedicated, high-performance `System.Threading.Lock` primitive.
+Prior to C# 13 and .NET 9, synchronization relied on `Monitor.Enter` / `Monitor.Exit` over arbitrary reference objects (`lock (new object())`), which suffered from overhead and accidental lock-target mutation. `.NET 9+` introduces `System.Threading.Lock`; the field must be typed as `Lock` (not `object`) so the C# 13 compiler lowers `lock (_syncLock)` to `Lock.EnterScope()`. Projects multi-targeting `net8.0;net9.0` must guard usage with `#if NET9_0_OR_GREATER` or target `net9.0+`.
 
 ### Dedicated Lock Syntax
 ```csharp
@@ -90,13 +90,12 @@ public async IAsyncEnumerable<AuditRecord> StreamAuditLogsAsync(
 
 Thread pool starvation occurs when asynchronous operations are synchronously blocked, holding thread-pool worker threads hostage and cascading into high latency.
 
-### Prohibited Blocking Methods
-- ❌ `task.Result`
-- ❌ `task.Wait()`
-- ❌ `task.GetAwaiter().GetResult()`
+### Prohibited Blocking & Lifetime Violations
+- ❌ `task.Result` / `task.Wait()` / `task.GetAwaiter().GetResult()`
 - ❌ `Task.Run(...).Wait()`
+- ❌ Awaiting a `ValueTask` / `ValueTask<T>` more than once or concurrently (call `.AsTask()` if shared)
 
 ### Correct Asynchronous Idioms
 - ✅ Always use `await` inside async methods.
 - ✅ Configure background workers with `Task.Run` only for CPU-bound computations, never for blocking I/O calls.
-- ✅ Always accept and check `CancellationToken.ThrowIfCancellationRequested()`.
+- ✅ Always accept and propagate `CancellationToken` (and guard cancellation boundaries via `ct.ThrowIfCancellationRequested()`).

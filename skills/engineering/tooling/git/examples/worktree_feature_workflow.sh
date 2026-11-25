@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 BRANCH_NAME="feat/telemetry"
@@ -7,7 +8,8 @@ BASE_REF="origin/main"
 git fetch origin main --prune
 
 if [ -d "$TARGET_DIR" ]; then
-    git worktree remove --force "$TARGET_DIR"
+    echo "Worktree directory already exists: $TARGET_DIR" >&2
+    exit 1
 fi
 
 git worktree add -b "$BRANCH_NAME" "$TARGET_DIR" "$BASE_REF"

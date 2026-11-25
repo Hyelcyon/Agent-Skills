@@ -33,5 +33,5 @@ Explain the five whys (or technical chain of events) explaining why the failure 
 ## 4. Permanent Invariant Established
 
 Document the exact rule added to workspace memory or rules to ensure this incident cannot recur:
-- **Location Updated**: [e.g., .gemini/knowledge/KC-005.md / AGENTS.md]
+- **Location Updated**: [e.g., .gemini/knowledge/cards/KC-005-slug.md + .gemini/knowledge/knowledge.json / AGENTS.md]
 - **Rule Summary**: [One clear directive]

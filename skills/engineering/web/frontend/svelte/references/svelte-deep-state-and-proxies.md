@@ -1,12 +1,12 @@
 # Svelte 5 Deep State and Reactive Proxies
 
-Engineering standards for deeply reactive proxies, in-place mutations, non-reactive raw state, and snapshot serialization in Svelte 5.
+Engineering standards for deeply reactive proxies, reactive built-in collections (`SvelteMap`/`SvelteSet`), shallow raw state (`$state.raw`), and un-proxied snapshot serialization (`$state.snapshot`).
 
 ---
 
 ## 1. Deep Reactive Proxies in `$state()`
 
-In Svelte 5, passing an object, array, `Map`, or `Set` to `$state()` wraps the structure in a transparent reactive Proxy:
+Passing a **plain object or array** to `$state()` wraps it recursively in a fine-grained reactive `Proxy`:
 
 ```svelte
 <script lang="ts">
@@ -22,7 +22,7 @@ let todos = $state<TodoItem[]>([
 
 function addTodo(text: string): void {
   todos.push({
-    id: `t_${Date.now()}`,
+    id: crypto.randomUUID(),
     text,
     completed: false
   });
@@ -45,39 +45,61 @@ function toggleTodo(todo: TodoItem): void {
     </li>
   {/each}
 </ul>
-<button onclick={() => addTodo('Task Beta')}>Add Item</button>
+<button type="button" onclick={() => addTodo('Task Beta')}>Add Item</button>
 ```
 
-### In-Place Mutation Mechanics
-- Modifying nested properties (`todo.completed = true`) or calling mutator methods (`todos.push(...)`, `todos.splice(...)`) directly triggers fine-grained signal notifications.
-- Reassigning entire arrays or cloning objects (`todos = [...todos, item]`) is unnecessary.
+### Proxy Invariants & Pitfalls
+- **In-Place Mutations Work**: `todo.completed = true` and `todos.push(...)` notify only fine-grained subscribers.
+- **Destructuring Severs Reactivity**: `const { text } = todo;` captures a non-reactive string copy; read `todo.text` directly or derive via `$derived(todo.text)`.
+- **Proxy Identity Mismatch**: `$state(rawObj) === rawObj` evaluates to `false` because `$state` returns a `Proxy`; match items by stable ID instead of object reference identity.
 
 ---
 
-## 2. High-Performance Raw State: `$state.raw()`
+## 2. Reactive Built-In Collections (`SvelteMap`, `SvelteSet`)
 
-Deep proxies introduce slight memory and tracking overhead. For large datasets, immutable records, WebGL buffers, or third-party instances that should not be tracked deeply, use `$state.raw()`:
+`$state()` does **NOT** proxy built-in `Map`, `Set`, `Date`, `URL`, or arbitrary class instances. Calling `.set()` or `.add()` on `$state(new Map())` triggers zero updates. Use Svelte 5's reactive collection classes from `'svelte/reactivity'`:
+
+```svelte
+<script lang="ts">
+import { SvelteSet } from 'svelte/reactivity';
+
+const selectedIds = new SvelteSet<string>();
+
+function toggleSelection(id: string): void {
+  if (selectedIds.has(id)) {
+    selectedIds.delete(id);
+  } else {
+    selectedIds.add(id);
+  }
+}
+</script>
+
+<p>Selected: {selectedIds.size}</p>
+```
+Note: `SvelteMap` and `SvelteSet` track structural membership (`.set`, `.delete`, `.add`, `.clear`); plain objects stored inside them must still be wrapped in `$state(...)` if their inner properties are mutated in place.
+
+---
+
+## 3. High-Performance Raw State: `$state.raw()`
+
+Deep proxies add allocation overhead for massive tables, WebGL typed buffers, or immutable records. Use `$state.raw()` when values are only replaced wholesale:
 
 ```svelte
 <script lang="ts">
 let chartBuffer = $state.raw<Float64Array>(new Float64Array(100000));
 
 function replaceBuffer(newBuffer: Float64Array): void {
+  // Reassigning triggers updates; mutating chartBuffer[0] directly does not.
   chartBuffer = newBuffer;
 }
 </script>
 ```
 
-### Characteristics of `$state.raw()`
-- Shallow reactivity only: Reading nested properties does not register dependencies.
-- Reassignment triggers view updates (`chartBuffer = newBuffer`), but mutating inner items (`chartBuffer[0] = 5`) does not.
-
 ---
 
-## 3. Serialization and Snapshots: `$state.snapshot()`
+## 4. Serialization and Snapshots: `$state.snapshot()`
 
-Because `$state()` objects are wrapped in proxies, passing them to external libraries, Web Workers, or `structuredClone` can trigger proxy traversal issues.
-Use `$state.snapshot()` to extract an un-proxied, deep copy:
+Structured cloning (`structuredClone`, `postMessage`, IndexedDB, external SDKs) can fail or behave unexpectedly on `Proxy` wrappers. Use `$state.snapshot()` to obtain a plain, un-proxied deep clone:
 
 ```svelte
 <script lang="ts">
@@ -88,9 +110,9 @@ let config = $state({
   }
 });
 
-function exportConfiguration(): void {
-  const pureJson = $state.snapshot(config);
-  navigator.clipboard.writeText(JSON.stringify(pureJson, null, 2));
+async function exportConfiguration(): Promise<void> {
+  const plainConfig = $state.snapshot(config);
+  await navigator.clipboard.writeText(JSON.stringify(plainConfig, null, 2));
 }
 </script>
 ```

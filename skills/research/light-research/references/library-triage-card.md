@@ -20,9 +20,9 @@ Evaluate candidate packages across four dimensions (Score 1-5):
 Quickly extract package health directly from CLI without full web page scraping:
 
 ```bash
-npm view <package-name> name version license repository.url
-npx package-size <package-name>
+npm view <package-name> name version license dist.unpackedSize time.modified repository.url
 pip index versions <package-name>
+cargo info <package-name>
 ```
 
 ---

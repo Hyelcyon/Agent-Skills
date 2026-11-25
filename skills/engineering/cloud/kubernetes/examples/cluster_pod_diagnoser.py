@@ -1,11 +1,15 @@
 import json
 import subprocess
 import sys
-from typing import Any, Dict, List
+from typing import Any
 
-def run_kubectl(args: List[str]) -> Dict[str, Any]:
-    cmd = ["kubectl"] + args + ["-o", "json"]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
+
+def run_kubectl(args: list[str], timeout_sec: float = 30.0) -> dict[str, Any]:
+    cmd = ["kubectl", *args, "-o", "json"]
+    try:
+        proc = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=timeout_sec)
+    except subprocess.TimeoutExpired:
+        return {"error": f"kubectl timed out after {timeout_sec}s", "items": []}
     if proc.returncode != 0:
         return {"error": proc.stderr.strip(), "items": []}
     try:
@@ -13,7 +17,8 @@ def run_kubectl(args: List[str]) -> Dict[str, Any]:
     except json.JSONDecodeError as exc:
         return {"error": str(exc), "items": []}
 
-def diagnose_pod_issues(namespace: str = "") -> Dict[str, Any]:
+
+def diagnose_pod_issues(namespace: str = "") -> dict[str, Any]:
     args = ["get", "pods"]
     if namespace:
         args.extend(["-n", namespace])
@@ -24,7 +29,7 @@ def diagnose_pod_issues(namespace: str = "") -> Dict[str, Any]:
     if "error" in data and not data.get("items"):
         return {"status": "error", "message": data["error"], "findings": []}
 
-    findings: List[Dict[str, Any]] = []
+    findings: list[dict[str, Any]] = []
 
     for pod in data.get("items", []):
         metadata = pod.get("metadata", {})
@@ -32,6 +37,18 @@ def diagnose_pod_issues(namespace: str = "") -> Dict[str, Any]:
         pod_ns = metadata.get("namespace", "default")
         status = pod.get("status", {})
         phase = status.get("phase", "Unknown")
+
+        if phase == "Pending":
+            for cond in status.get("conditions", []):
+                if cond.get("type") == "PodScheduled" and cond.get("status") == "False":
+                    findings.append({
+                        "severity": "CRITICAL",
+                        "namespace": pod_ns,
+                        "pod": pod_name,
+                        "container": "",
+                        "issue": cond.get("reason", "Unschedulable"),
+                        "message": cond.get("message", "Pod cannot be scheduled"),
+                    })
 
         container_statuses = status.get("containerStatuses", [])
         for cs in container_statuses:
@@ -50,7 +67,7 @@ def diagnose_pod_issues(namespace: str = "") -> Dict[str, Any]:
                         "pod": pod_name,
                         "container": c_name,
                         "issue": reason,
-                        "message": waiting.get("message", "Container is failing to start")
+                        "message": waiting.get("message", "Container is failing to start"),
                     })
 
             if terminated:
@@ -64,7 +81,7 @@ def diagnose_pod_issues(namespace: str = "") -> Dict[str, Any]:
                         "container": c_name,
                         "issue": "OOMKilled",
                         "exitCode": exit_code,
-                        "message": "Container exceeded its memory limit"
+                        "message": "Container exceeded its memory limit",
                     })
 
             if restart_count > 5 and not waiting and not terminated:
@@ -75,12 +92,11 @@ def diagnose_pod_issues(namespace: str = "") -> Dict[str, Any]:
                     "container": c_name,
                     "issue": "HighRestartCount",
                     "restartCount": restart_count,
-                    "message": f"Container has restarted {restart_count} times"
+                    "message": f"Container has restarted {restart_count} times",
                 })
 
         spec = pod.get("spec", {})
-        containers = spec.get("containers", [])
-        for c in containers:
+        for c in spec.get("containers", []):
             c_name = c.get("name", "")
             resources = c.get("resources", {})
             requests = resources.get("requests", {})
@@ -100,21 +116,23 @@ def diagnose_pod_issues(namespace: str = "") -> Dict[str, Any]:
                     "pod": pod_name,
                     "container": c_name,
                     "issue": "MissingResourceDeclarations",
-                    "missing": missing
+                    "missing": missing,
                 })
 
     return {
         "status": "success",
         "total_pods_scanned": len(data.get("items", [])),
         "total_findings": len(findings),
-        "findings": findings
+        "findings": findings,
     }
+
 
 def main() -> int:
     ns = sys.argv[1] if len(sys.argv) > 1 else ""
     report = diagnose_pod_issues(ns)
     print(json.dumps(report, indent=2))
     return 0 if report.get("status") == "success" else 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -15,6 +15,8 @@ const { count } = defineProps<{ count: number }>();
 In Vue 3.5+, props destructuring is natively supported and fully reactive:
 ```vue
 <script setup lang="ts">
+import { computed } from 'vue';
+
 interface Props {
   title: string;
   count?: number;

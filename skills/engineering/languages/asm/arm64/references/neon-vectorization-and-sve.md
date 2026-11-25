@@ -50,8 +50,8 @@ This adds `v1.s[0] + v1.s[1]`, `v1.s[2] + v1.s[3]`, `v2.s[0] + v2.s[1]`, and `v2
 NEON provides hardware de-interleaving and interleaving instructions for audio (stereo channels) and image processing (RGBA channels):
 
 ```asm
-ld2 {v0.4s, v1.4s}, [x0], 32
-st2 {v0.4s, v1.4s}, [x1], 32
+ld2 {v0.4s, v1.4s}, [x0], #32
+st2 {v0.4s, v1.4s}, [x1], #32
 ```
 
 `ld2` loads 32 bytes from memory and automatically separates interleaved alternating channels into register `v0` and register `v1`.

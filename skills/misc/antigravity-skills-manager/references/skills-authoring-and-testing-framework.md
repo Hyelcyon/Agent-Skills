@@ -1,60 +1,53 @@
-# Antigravity Skills Authoring and Automated Testing Framework
+# Antigravity Skills Authoring, Manual Review & Testing Framework
 
-Verification framework, schema validation rules, and automated audit pipelines for maintaining enterprise-grade Antigravity skills.
-
-## 1. Skill Lifecycle and Authoring Pipeline
-
-Authoring a production skill follows a 4-step engineering pipeline:
-1. **Scaffold Directory Structure**: Create skill root with `references/`, `examples/`, `resources/` subdirectories.
-2. **Author Discovery Metadata & Protocol**: Create `SKILL.md` (<180 lines) with valid YAML frontmatter and 5-phase operational workflow.
-3. **Populate Triad Artifacts**:
-   - Minimum 3 working code examples in `examples/`.
-   - Minimum 3 starter templates or configs in `resources/`.
-   - Minimum 3 modular reference documents in `references/` (minimum 7 for major frameworks).
-4. **Automated Audit**: Execute `audit_skills.ps1` to verify frontmatter, discovery status, quota compliance, and zero inline comments.
+Validation rules, manual side-by-side verification standards, and automated gates for Antigravity Desktop App skills.
 
 ---
 
-## 2. Automated Schema and Quality Gates
+## 1. Automated Gate vs Manual Verification (Why Scripts Alone Fail)
 
-The skills audit suite executes programmatic checks across all skills in the workspace:
+Automated checks catch syntax errors, broken links, and missing files, **but they cannot prove technical truth**. Every substantive skill update requires both:
 
-```json
-{
-  "rules": {
-    "maxSkillLines": 180,
-    "requireFrontmatter": true,
-    "minExamplesCount": 3,
-    "minResourcesCount": 3,
-    "minReferencesCount": 3,
-    "majorFrameworkMinReferences": 7,
-    "forbidInlineCodeComments": true
-  }
-}
-```
-
-### The Zero-Inline-Comment Law
-
-Code snippets in examples, resources, and references must contain zero inline comments (`//`, `/* */`, `#`, `--`). 
-
-Why inline comments are forbidden:
-- Low-value commentary causes token bloat.
-- AI models frequently copy-paste obsolete comments directly into generated user code.
-- Explanations must reside in markdown prose surrounding code blocks.
+1. **Automated Structural & Syntax Gate**:
+   - `skills.json` / `.agents/skills.json` parity and path resolution.
+   - Frontmatter YAML parsing (`name` matches directory name, `1..64` chars; `description` `10..1024` chars).
+   - Zero broken relative links, zero unclosed code fences, Python `ast.parse` and JSON validity.
+2. **Manual Side-by-Side Technical Verification**:
+   - **API & Version Check**: Compare signatures in `SKILL.md`, `references/`, and `examples/` directly against current official documentation (e.g., Java 25 JEP 505 `StructuredTaskScope.open()`, Angular 19 `linkedSignal`/`resource`, Python 3.12+ `datetime.now(timezone.utc)`).
+   - **Security Check**: Audit code examples manually for SSRF IPv4-mapped IPv6 bypasses, constant-time token comparison (`hmac.compare_digest`), hardcoded secret literals, XSS/injection flaws, or missing `__Host-` cookie checks.
+   - **OS & Shell Portability Check**: Ensure verification commands work safely on Windows PowerShell as well as Linux/macOS without blocking forever on dev servers (`vite preview`, `prism mock`).
 
 ---
 
-## 3. Automated Validation Script Execution
+## 2. Comment Discipline: Zero AI-Slop (Allow Invariant "Why" Comments)
 
-Run the workspace audit script to verify repository compliance:
+Blanket rules banning all `#` or `//` break executable shebangs (`#!/usr/bin/env bash`), shell portability markers (`# bash`), and non-obvious invariant explanations. Enforce precision instead:
+
+- **Forbidden (Echo / AI-Slop Comments)**: Comments restating syntax (`// increment i`, `# load config`, `/* return true */`) or dead commented-out code.
+- **Preserved / Encouraged (Engineering Comments)**:
+  - Executable shebangs (`#!/usr/bin/env python3`, `#!/usr/bin/env bash`) and `# bash` / `# linux` markers used by portability auditors.
+  - Brief comments explaining **non-obvious invariants, concurrency hazards, OS quirks, or spec workarounds** (e.g., why IPv4-mapped IPv6 is unboxed before `is_global`, or why `flock` lockfiles must not be `rm -f`'d on exit).
+
+---
+
+## 3. Quality Gates Configuration
+
+Refer to [../resources/audit-rules.json](../resources/audit-rules.json):
+- `SKILL.md` stays concise (`< 180` lines in workstation catalog; never monolithically bloated).
+- YAML frontmatter validated against [../resources/skill-frontmatter-schema.json](../resources/skill-frontmatter-schema.json).
+- Discovery manifests validated against [../resources/skills-schema.json](../resources/skills-schema.json).
+- No stub artifacts (`< 40` bytes, matching `minArtifactBytes` in `audit-rules.json`) created merely to hit count metrics.
+
+---
+
+## 4. Verification Execution
+
+Run the PowerShell structural audit across both manifests plus the Python truth verifier:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File skills/misc/antigravity-skills-manager/scripts/audit_skills.ps1
+powershell -ExecutionPolicy Bypass -File skills/misc/antigravity-skills-manager/scripts/audit_skills.ps1 -ConfigPath skills.json
+powershell -ExecutionPolicy Bypass -File skills/misc/antigravity-skills-manager/scripts/audit_skills.ps1 -ConfigPath .agents/skills.json
+python skills/misc/antigravity-skills-manager/scripts/verify_skill_truth.py
 ```
 
-The script reports:
-- **Discovery**: Whether the skill is discoverable via root parentage or `skills.json` entry.
-- **Frontmatter**: Validates presence of opening `---`, `name:`, and `description:`.
-- **Examples / Resources / References**: Exact file counts per subdirectory.
-- **Triad**: Evaluates `PASS` when Examples $\ge 3$ and Resources $\ge 3$.
-- **Empty Dirs**: Flags any lingering empty directories.
+Treat a zero exit code from scripts as the **floor, not the ceiling**—always pair script runs with manual compiler/test execution (`tsc --noEmit`, `ruff check`, `python -m unittest`) after final edits.

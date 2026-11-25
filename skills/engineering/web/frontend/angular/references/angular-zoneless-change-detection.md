@@ -16,12 +16,13 @@ Whenever an asynchronous event resolved, Zone.js signaled Angular to perform dir
 
 ---
 
-## 2. Configuring Zoneless in Angular 19
+## 2. Configuring Zoneless in Angular 19+
 
-In Angular 19, zoneless change detection is configured via the application bootstrap provider:
+In Angular 19, zoneless change detection is configured via `provideExperimentalZonelessChangeDetection()` (promoted to stable `provideZonelessChangeDetection()` in Angular 20+):
 
 ```typescript
 import { ApplicationConfig, provideExperimentalZonelessChangeDetection } from '@angular/core';
+// Angular 20+: import { provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 
@@ -34,7 +35,7 @@ export const appConfig: ApplicationConfig = {
 ```
 
 ### Removing Zone.js Polyfill
-In `angular.json`, remove `zone.js` from the build polyfills array:
+In `angular.json`, remove `zone.js` from the build `polyfills` array (and remove `zone.js/testing` from test polyfills, supplying the zoneless provider in `TestBed.configureTestingModule`):
 ```json
 {
   "projects": {
@@ -88,13 +89,13 @@ When migrating existing applications to zoneless mode:
 3. **RxJS Observable Migration**:
    Convert observables to signals using `toSignal()` from `@angular/core/rxjs-interop`:
    ```typescript
-   import { Component, inject } from '@angular/core';
+   import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
    import { toSignal } from '@angular/core/rxjs-interop';
    import { OrderService } from './order.service';
 
    @Component({
      selector: 'app-orders',
-     standalone: true,
+     changeDetection: ChangeDetectionStrategy.OnPush,
      template: `
        @for (order of orders(); track order.id) {
          <div>Order: {{ order.id }}</div>

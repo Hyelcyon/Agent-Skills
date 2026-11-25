@@ -48,3 +48,5 @@ Hydration errors occur when the server-rendered HTML does not match the client's
 8. ❌ **Missing Effect Cleanups**: Forgetting to return a cleanup function from `useEffect` when subscribing to WebSockets, intervals, or event listeners.
 9. ❌ **Wrapped `forwardRef`**: Continuing to wrap components in `forwardRef` in React 19 codebases.
 10. ❌ **Derived State Stored in `useState`**: Syncing prop changes into local state via an effect instead of calculating inline during render.
+11. ❌ **Sequential Async Waterfalls & Heavy Barrel Imports**: Chaining unrelated `await`s instead of `Promise.all()`, or pulling whole icon/chart barrel indexes instead of direct imports + `React.lazy()`.
+12. ❌ **Boolean-Prop Monoliths**: Multiplying `is*`/`has*`/`show*` flags on shared components instead of Compound Component sub-slots.

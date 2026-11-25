@@ -16,18 +16,19 @@ export function OptimisticTodoList({ initialTodos }: { initialTodos: Todo[] }) {
     todos,
     (state, newText: string) => [
       ...state,
-      { id: `temp_${Date.now()}`, text: newText, sending: true }
+      { id: `temp_${crypto.randomUUID()}`, text: newText, sending: true }
     ]
   );
 
   async function handleAdd(formData: FormData) {
-    const text = formData.get('todo') as string;
-    if (!text?.trim()) return;
+    const rawText = formData.get('todo');
+    const text = typeof rawText === 'string' ? rawText.trim() : '';
+    if (!text) return;
 
     startTransition(async () => {
       addOptimisticTodo(text);
       await new Promise((resolve) => setTimeout(resolve, 300));
-      setTodos((prev) => [...prev, { id: `real_${Date.now()}`, text }]);
+      setTodos((prev) => [...prev, { id: `real_${crypto.randomUUID()}`, text }]);
     });
   }
 

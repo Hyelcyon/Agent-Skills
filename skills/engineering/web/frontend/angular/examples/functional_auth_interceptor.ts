@@ -1,9 +1,11 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 
+const TRUSTED_API_PREFIX = '/api/';
+
 @Injectable({ providedIn: 'root' })
 export class SessionService {
-  readonly token = signal<string | null>('jwt_session_token_sample');
+  readonly token = signal<string | null>(null);
 }
 
 export const functionalAuthInterceptor: HttpInterceptorFn = (
@@ -13,7 +15,8 @@ export const functionalAuthInterceptor: HttpInterceptorFn = (
   const session = inject(SessionService);
   const currentToken = session.token();
 
-  if (!currentToken) {
+  // Never attach bearer credentials to arbitrary external URLs
+  if (!currentToken || !req.url.startsWith(TRUSTED_API_PREFIX)) {
     return next(req);
   }
 

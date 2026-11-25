@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, useInView } from 'motion/react';
 
@@ -25,7 +27,11 @@ export function BlurText({
   const elements = animateBy === 'words' ? text.split(' ') : text.split('');
   const [inView, setInView] = useState(false);
   const ref = useRef<HTMLParagraphElement>(null);
-  const isInView = useInView(ref, { once: true, amount: threshold });
+  const isInView = useInView(ref, {
+    once: true,
+    amount: threshold,
+    margin: rootMargin as `${number}px`
+  });
 
   useEffect(() => {
     if (isInView) {

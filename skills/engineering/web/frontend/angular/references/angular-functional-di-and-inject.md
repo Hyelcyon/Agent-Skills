@@ -12,17 +12,17 @@ Angular 19 mandates functional `inject()` over constructor-based parameter injec
 - Usable inside standalone functions, composable helpers, and guards.
 
 ```typescript
-import { Component, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-dashboard-header',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header>
       <span>Welcome, {{ currentUser() }}</span>
-      <button (click)="logout()">Sign Out</button>
+      <button type="button" (click)="logout()">Sign Out</button>
     </header>
   `
 })
@@ -81,7 +81,7 @@ export class ApiClient {
 
 ## 3. Functional HTTP Interceptors: `HttpInterceptorFn`
 
-Class-based interceptors (`implements HttpInterceptor`) are deprecated. Use functional interceptors:
+Legacy class-based interceptors (`implements HttpInterceptor`) are superseded by functional interceptors (`HttpInterceptorFn`), which avoid DI class boilerplate and tree-shake cleanly:
 
 ```typescript
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';

@@ -29,16 +29,13 @@ Apply runtime constraints in production orchestrations or local compose manifest
 ```yaml
 services:
   api:
-    image: enterprise-api:latest
+    image: registry.example.com/enterprise-api:1.4.2@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
     user: "10001:10001"
     read_only: true
     security_opt:
       - no-new-privileges:true
-      - seccomp:unconfined
     cap_drop:
       - ALL
-    cap_add:
-      - NET_BIND_SERVICE
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
       - /run:rw,noexec,nosuid,size=16m
@@ -50,28 +47,29 @@ services:
 ```
 
 - **`read_only: true`**: Mounts the container root filesystem as read-only. Attackers cannot download malicious binaries or overwrite system files.
-- **`cap_drop: ALL`**: Strips all 40+ Linux capabilities, neutralizing network raw packet creation, module loading, and system administrative bypasses.
-- **`no-new-privileges:true`**: Prevents setuid and setgid binaries from escalating privileges within the running container.
+- **`cap_drop: ALL`**: Strips all 40+ Linux capabilities, neutralizing network raw packet creation, module loading, and system administrative bypasses. Add `NET_BIND_SERVICE` only if binding ports `< 1024`.
+- **`no-new-privileges:true`**: Prevents setuid and setgid binaries from escalating privileges within the running container (leave Docker's default seccomp profile active; never set `seccomp:unconfined`).
 - **`tmpfs`**: Provides memory-backed, ephemeral scratch space for temporary application files while forbidding execution (`noexec`).
 
 ---
 
 ## 3. Minimal Base Images and Distroless Architecture
 
-Reduce image attack surface and eliminate shell escape vectors by using Google Distroless or scratch base images:
+Reduce image attack surface and eliminate shell escape vectors by using Google Distroless or scratch base images. Match the builder libc (`glibc` on Debian) to the distroless runtime (`debian12`) so native addons do not break at runtime:
 
 ```dockerfile
-FROM node:22-alpine AS build
+FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable && pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm build
+RUN pnpm build && CI=true pnpm prune --prod
 
 FROM gcr.io/distroless/nodejs22-debian12:nonroot
 WORKDIR /app
 COPY --from=build --chown=nonroot:nonroot /app/dist ./dist
 COPY --from=build --chown=nonroot:nonroot /app/node_modules ./node_modules
+COPY --from=build --chown=nonroot:nonroot /app/package.json ./package.json
 USER nonroot
 CMD ["dist/index.js"]
 ```

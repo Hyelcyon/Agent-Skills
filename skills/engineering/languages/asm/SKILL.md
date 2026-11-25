@@ -55,8 +55,10 @@ perf stat -e cycles,instructions,uops_issued.any,uops_executed.thread,frontend_r
 
 ---
 
-## Prohibited Anti-Patterns
+## Fatal Mistakes Never to Make & Prohibited Anti-Patterns
 
+- ❌ Issuing non-temporal streaming stores (`vmovntdq`) on unaligned destination pointers without a 32-byte alignment peel prologue (causes hardware `#GP` faults).
+- ❌ Performing scalar operations on vector accumulators before horizontal reduction on ARM64 (writing `s0` silently zeroes `v0[127:32]`, discarding 75% of vector lanes).
 - ❌ Serial reduction accumulation into a single register (throttles execution to instruction latency).
 - ❌ Aggressive unrolling (>8x) that exceeds the uop cache (DSB) and forces legacy decoder fallback.
 - ❌ Putting concurrently modified atomic counters in the same 64-byte cache line (causes false sharing).
@@ -86,4 +88,4 @@ perf stat -e cycles,instructions,uops_issued.any,uops_executed.thread,frontend_r
 - Non-Temporal Streaming Cache-Bypass Copy: [examples/non_temporal_streaming_copy.s](./examples/non_temporal_streaming_copy.s)
 - Branchless Integer to ASCII (SWAR): [examples/branchless_itoa_swar.s](./examples/branchless_itoa_swar.s)
 - Wait-Free MPMC Atomic Slot Reservation: [examples/wait_free_mpmc_bounded_slot.s](./examples/wait_free_mpmc_bounded_slot.s)
-- NEON Bit Matrix 8x8 Transpose: [examples/neon_swar_bit_matrix_transpose.s](./examples/neon_swar_bit_matrix_transpose.s)
+- NEON 4x4 Float Matrix Transpose: [examples/neon_swar_bit_matrix_transpose.s](./examples/neon_swar_bit_matrix_transpose.s)

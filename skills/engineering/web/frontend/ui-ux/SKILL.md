@@ -13,8 +13,10 @@ Engineering standards for building accessible, high-performance web user interfa
 - Smoothly animating view or page state changes via the View Transitions API.
 - Structuring design token palettes across light and dark modes with `light-dark()`.
 - Integrating memorable animated components, text effects, or 3D backgrounds (use companion skill `react-bits`).
+- Establishing senior art direction, anti-AI-slop typography, OKLCH palette restraint, or aesthetic critique/redesign (pair with `design-taste`).
 
 ## When NOT to Use
+- Pure art direction, layout taste calibration, or visual critique without accessibility/CSS plumbing focus (start with `design-taste`).
 - Writing backend rendering or database querying logic (use `api` or `architecture`).
 - Managing complex asynchronous server cache invalidations (use `state-management`).
 
@@ -36,8 +38,8 @@ Identify interactive states (hover, active, focused, disabled, invalid). Map req
 ### Phase 2: Accessible Semantics & Focus Flow
 Enforce keyboard navigation and focus containment. Traps in modals must restore focus to the opening element upon close. Ensure screen reader announcements via `aria-live` or native `<dialog>`.
 
-### Phase 3: Responsive Container & Token Orchestration
-Build components with CSS Container Queries (`@container`) so widgets adapt within arbitrary parent layouts. Structure theme colors via `light-dark()` tokens:
+### Phase 3: Responsive Container, Baseline Hygiene & Token Orchestration
+Build components with CSS Container Queries (`@container`) so widgets adapt within arbitrary parent layouts. Use `100dvh` instead of `100vh`, `min-width: 0` inside Flex/Grid cells to prevent string overflow, `overscroll-behavior: contain` on scrollable drawers, `touch-action: manipulation` on interactive controls, URL search-param syncing for tabs/filters, and semantic Top Layer (`<dialog>`, `popover`) instead of arbitrary `z-[9999]`. Structure theme colors via `light-dark()` tokens:
 ```css
 .card {
   color: light-dark(#111827, #f9fafb);
@@ -48,10 +50,10 @@ Build components with CSS Container Queries (`@container`) so widgets adapt with
 ### Phase 4: Fluid Motion & View Transitions
 Wrap page and DOM updates in `document.startViewTransition()`. Provide fallback animations for browsers without support and respect `prefers-reduced-motion`. For interactive animated UI cards, text effects, and backgrounds, dispatch `react-bits`.
 
-### Phase 5: Verification & Accessibility Proof
-Audit interactive widgets with automated accessibility engines:
+### Phase 5: Visual Agent Feedback Loop & Accessibility Proof
+Run a closed browser loop against the preview server (Accessibility Tree snapshot -> `1440×900` / `390×844` viewport check -> Console/Hydration/4xx-5xx error interception -> Repair) paired with user-centric Playwright assertions (`getByRole`, `getByLabel`, `Tab`/`Escape` focus restoration with click-focus suppression via `onMouseDown`, and `scrollWidth <= innerWidth` — never brittle CSS selectors or `waitForTimeout`) and `axe-core`:
 ```bash
-npx axe-cli http://localhost:3000
+npx @axe-core/cli http://localhost:3000
 ```
 
 ---
@@ -61,6 +63,8 @@ npx axe-cli http://localhost:3000
 - ❌ Trapping keyboard focus without an `Escape` key dismiss handler.
 - ❌ Removing focus rings with `outline: none` without providing an accessible alternative.
 - ❌ Building custom modal dialogs with `div` instead of native `<dialog>`.
+- ❌ Using `100vh` for full-height shells, omitting `min-width: 0` on Grid/Flex text cells, or fighting layering with arbitrary `z-[9999]`.
+- ❌ Writing brittle Playwright tests targeting internal CSS classes or `waitForTimeout()` sleeps instead of ARIA roles and Web-First assertions.
 - ❌ Relying exclusively on color to convey information or validation status.
 - ❌ Running animations that violate user `prefers-reduced-motion` settings.
 
@@ -70,6 +74,7 @@ npx axe-cli http://localhost:3000
 - Modern CSS & WCAG 2.2: [references/modern-css-and-accessibility.md](./references/modern-css-and-accessibility.md)
 - Native Dialog, Popover & Anchor Positioning: [references/native-dialog-and-popover-api.md](./references/native-dialog-and-popover-api.md)
 - View Transitions Architecture: [references/view-transitions-multi-page-and-spa.md](./references/view-transitions-multi-page-and-spa.md)
+- Senior Design Taste & Craft: [../design-taste/SKILL.md](../design-taste/SKILL.md)
 - React Bits Design System: [../react-bits/SKILL.md](../react-bits/SKILL.md)
 
 ## Resources & Examples

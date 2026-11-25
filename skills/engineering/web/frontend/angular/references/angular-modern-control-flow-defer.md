@@ -98,7 +98,7 @@ Native pattern matching block:
 
 ### Defer Triggers
 - `on idle`: Triggers when browser reaches idle state (`requestIdleCallback`).
-- `on viewport`: Triggers when placeholder enters the browser viewport (`IntersectionObserver`).
+- `on viewport`: Triggers when placeholder enters the browser viewport (`IntersectionObserver`). Requires a non-empty `@placeholder` element to observe.
 - `on interaction`: Triggers on click or focus of a target element.
 - `on hover`: Triggers when mouse hovers over a target element.
 - `on immediate`: Triggers immediately after initial render finishes.

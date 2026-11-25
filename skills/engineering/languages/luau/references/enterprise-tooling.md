@@ -62,7 +62,6 @@ Never write `script.Parent.Parent.Parent`. Use explicit dependency injection:
 --!strict
 
 local PlayerDataService = {}
-PlayerDataService.__index = PlayerDataService
 
 type PlayerRecord = {
     UserId: number,

@@ -15,16 +15,18 @@ public class VirtualThreadWorkerPool {
             .connectTimeout(Duration.ofSeconds(5))
             .build();
 
-    public List<String> fetchEndpointsConcurrently(List<String> urls) throws Exception {
+    public List<String> fetchEndpointsConcurrently(List<String> urls) {
+        List<Future<String>> futures;
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            List<Future<String>> futures = urls.stream()
+            futures = urls.stream()
                     .map(url -> executor.submit(() -> fetchSingleUrl(url)))
                     .toList();
-
-            return futures.stream()
-                    .map(Future::resultNow)
-                    .toList();
         }
+
+        // Future.resultNow() is valid only after executor.close() finishes awaiting all tasks.
+        return futures.stream()
+                .map(Future::resultNow)
+                .toList();
     }
 
     private String fetchSingleUrl(String url) {
@@ -37,6 +39,9 @@ public class VirtualThreadWorkerPool {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             return response.body();
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            return "ERROR: Request interrupted";
         } catch (Exception ex) {
             return "ERROR: " + ex.getMessage();
         }

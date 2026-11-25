@@ -50,3 +50,11 @@ Document trade-offs explicitly:
 - High-throughput batching vs low-latency immediate streaming.
 - Memory consumption overhead vs CPU serialization efficiency.
 - Cold-start penalty vs sustained warm performance.
+
+---
+
+## 4. Mapping Empirical Metrics into Decision Matrices
+
+Translate raw benchmark outputs into normalized `1-5` criteria scores using pre-declared hard gates:
+- **Hard Disqualification Gate**: Any option violating an SLA ceiling (e.g., `p99 > 50ms` or `errorRate > 0.01%` at target concurrency) fails regardless of cost or developer ergonomics.
+- **Normalized Weights**: Ensure criterion weights sum strictly to `1.00` before computing totals, and record raw measured units alongside normalized scores in the ADR or [../resources/evidence-matrix-template.json](../resources/evidence-matrix-template.json).

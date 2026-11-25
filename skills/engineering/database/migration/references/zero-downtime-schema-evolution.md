@@ -31,25 +31,34 @@ If the lock cannot be acquired within 2 seconds, the command fails fast, leaving
 
 ---
 
-## 3. Safe `NOT NULL` Column Additions
+## 3. Safe `NOT NULL` and Default Column Additions
 
-Never run `ALTER TABLE items ADD COLUMN status TEXT NOT NULL DEFAULT 'active';` on large tables (causes heavy table rewrite):
+In PostgreSQL 11+, `ADD COLUMN ... NOT NULL DEFAULT 'constant'` with an immutable/constant expression is a metadata-only catalog update (`attmissingval`) and does **not** rewrite the table heap, though it still requires a brief `AccessExclusiveLock` (so `lock_timeout` is mandatory).
 
-### Safe 4-Phase Strategy:
-1. **Add column as nullable**:
+By contrast, **volatile defaults** (`DEFAULT gen_random_uuid()`, `DEFAULT clock_timestamp()`, `DEFAULT random()`), non-constant defaults on `< PG 11`, or running `ALTER TABLE ... ALTER COLUMN ... SET NOT NULL` directly on an existing nullable column trigger a full table rewrite or full-table scan under `AccessExclusiveLock`.
+
+### Safe 4-Phase Strategy (Existing Columns / Volatile Defaults):
+1. **Add column as nullable** (and deploy dual-write trigger or application write path):
    ```sql
    SET lock_timeout = '2s';
    ALTER TABLE items ADD COLUMN status TEXT;
+   RESET lock_timeout;
    ```
-2. **Backfill values in small asynchronous batches** (`LIMIT 5000`).
-3. **Add constraint marked as `NOT VALID`** (locks table for <1ms without table scan):
+2. **Backfill values in small asynchronous batches** (`LIMIT 5000` inside a `PROCEDURE` with per-batch `COMMIT`).
+3. **Add `CHECK` constraint marked `NOT VALID`** (metadata lock only, no table scan):
    ```sql
    SET lock_timeout = '2s';
    ALTER TABLE items ADD CONSTRAINT check_status_not_null CHECK (status IS NOT NULL) NOT VALID;
+   RESET lock_timeout;
    ```
-4. **Validate constraint concurrently** (scans table with zero exclusive write locks):
+4. **Validate constraint concurrently**, then optionally promote to column `NOT NULL` on PG 12+ (skips full scan once the validated `CHECK` proves zero nulls exist):
    ```sql
    ALTER TABLE items VALIDATE CONSTRAINT check_status_not_null;
+
+   SET lock_timeout = '2s';
+   ALTER TABLE items ALTER COLUMN status SET NOT NULL;
+   ALTER TABLE items DROP CONSTRAINT check_status_not_null;
+   RESET lock_timeout;
    ```
 
 ---

@@ -102,4 +102,6 @@ When configuring complex test runners, CI matrices, or mocking harnesses:
 - **CI/CD Pipeline Matrix Testing**: Activate [`skills/engineering/cloud/ci-cd`](../skills/engineering/cloud/ci-cd/SKILL.md).
 - **Dockerized Integration Testing**: Activate [`skills/engineering/cloud/docker`](../skills/engineering/cloud/docker/SKILL.md).
 - **Node.js Native Test Runner & Strip**: Activate [`skills/engineering/web/backend/nodejs`](../skills/engineering/web/backend/nodejs/SKILL.md).
+- **Frontend Visual & Role-Based E2E Gate**: Activate [`skills/engineering/web/frontend/design-taste`](../skills/engineering/web/frontend/design-taste/SKILL.md) and [`ui-ux`](../skills/engineering/web/frontend/ui-ux/SKILL.md).
+- **Characterization & Regression Stewardship**: Activate [`skills/misc/maintenance`](../skills/misc/maintenance/SKILL.md).
 

@@ -23,9 +23,16 @@ Senior engineering runbook for authoring high-signal, architectural code comment
 
 When adding, reviewing, or refactoring comments in code, the agent must execute these 5 sequential phases:
 
-```
-[Phase 1: Code Clarification] ──> [Phase 2: Noise Elimination] ──> [Phase 3: Interface Contracts] ──> [Phase 4: Invariants & Rationale] ──> [Phase 5: Verification & Audit]
-  Refactor names & functions      Strip superficial comments       Write TSDoc/Docstring boundaries    Document "Why" and constraints    Validate docstrings & 0 stale
+```text
+┌───────────────────┐   ┌───────────────────┐   ┌───────────────────┐
+│ 1. Clarify Names  │──►│ 2. Purge "What"   │──►│ 3. Boundary Docs  │
+│    Refactor First │   │    Strip Slop     │   │    Public APIs    │
+└───────────────────┘   └───────────────────┘   └─────────┬─────────┘
+                                                          │
+┌───────────────────┐   ┌───────────────────┐             │
+│ 5. Audit & Lint   │◄──│ 4. Document "Why" │◄────────────┘
+│    ruff / tsdoc   │   │    Invariants     │
+└───────────────────┘   └───────────────────┘
 ```
 
 ### Phase 1: Code Clarification First
@@ -39,10 +46,11 @@ Inspect existing or generated code and immediately remove comments that simply r
 - ❌ Strip `// set status to paid` above `order.status = 'PAID'`
 
 ### Phase 3: Interface Contracts at Module Boundaries
-Every exported function, public method, and domain entity must have a formal docstring authored strictly in professional English:
-- **TypeScript**: TSDoc block with summary, `@remarks` for architectural context, `@param`, `@returns`, and `@throws`.
+Public/exported APIs, domain entities, and non-trivial shared utilities must carry concise English docstrings capturing contracts, preconditions, postconditions, and failure modes:
+- **TypeScript**: TSDoc block with summary, `@remarks` for architectural context, `@param` (constraints/formats, not name echoes), `@returns`, and `@throws`.
 - **Python**: Google-style docstring with `Args:`, `Returns:`, and `Raises:`.
 - **Rust**: Rustdoc `///` block with `# Invariants`, `# Errors`, and `# Panics`.
+- **No Trivial Accessor Spam**: Do not write mechanical docstrings on self-evident 1-line getters or private helpers (e.g., `Returns the capacity` on `capacity(&self) -> usize`).
 
 ### Phase 4: Capture Invariants, Trade-Offs & "Why"
 Document the non-obvious reasoning (always in concise English) that cannot be deduced from the syntax alone:
@@ -51,11 +59,12 @@ Document the non-obvious reasoning (always in concise English) that cannot be de
 - **Workarounds**: Link issue numbers or explain browser/API quirks that justify unusual workarounds.
 
 ### Phase 5: Verification & Maintenance Gate
-1. Validate documentation contracts and syntax across toolchains:
+1. Document only public interfaces, non-obvious invariants, edge constraints, and failure contracts—never inject docstring spam repeating trivial parameter names or private getter implementations.
+2. Validate documentation contracts and syntax across toolchains:
    - **TypeScript**: Validate TSDoc tags with `eslint-plugin-tsdoc` or TypeScript compiler checks.
    - **Python**: Check docstring conformance using `ruff check --select D`.
    - **Rust**: Run doc tests with `cargo test --doc`.
-2. Inspect the final Git diff to verify that zero superficial/trivial inline comments or stale comments remain. Ensure comments match the exact surrounding code.
+3. Inspect the final Git diff to verify that zero superficial/trivial inline comments or stale comments remain. Ensure comments match the exact surrounding code.
 
 ---
 

@@ -6,7 +6,6 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-          "standalone": true,
           "changeDetection": "OnPush",
           "style": "scss"
         }

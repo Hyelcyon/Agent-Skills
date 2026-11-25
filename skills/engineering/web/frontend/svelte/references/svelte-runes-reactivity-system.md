@@ -1,12 +1,12 @@
 # Svelte 5 Runes Reactivity System
 
-A comprehensive specification of the Svelte 5 compile-time Runes: `$state`, `$derived`, `$effect`, `$props`, and `$bindable`.
+A specification of Svelte 5 compile-time Runes: `$state`, `$derived`, `$derived.by`, `$effect`, `$props`, and `$bindable`.
 
 ---
 
-## 1. Local and Shared Reactive State: `$state()`
+## 1. Local Reactive State: `$state()`
 
-`$state()` declares deeply reactive state powered by fine-grained signals.
+`$state()` declares reactive state powered by fine-grained signals:
 
 ```svelte
 <script lang="ts">
@@ -38,7 +38,7 @@ function toggleTheme(): void {
 
 ## 2. Pure Derived State: `$derived()` and `$derived.by()`
 
-`$derived()` creates a cached, read-only reactive value that updates automatically when its dependencies change.
+`$derived()` creates a cached, read-only reactive value that updates lazily when its synchronous dependencies change. Dependencies read asynchronously (after `await` or inside `setTimeout`) are not tracked, and `$derived` callbacks must never mutate `$state` (`state_unsafe_mutation`).
 
 ### Single Expression Derivation
 ```svelte
@@ -51,7 +51,6 @@ let total = $derived(items.reduce((sum, n) => sum + n, 0));
 ```
 
 ### Multi-Statement Derivation: `$derived.by()`
-Use `$derived.by()` when the calculation requires branching or local variables:
 ```svelte
 <script lang="ts">
 let rawScores = $state<number[]>([85, 92, 78, 95]);
@@ -71,34 +70,41 @@ let medianScore = $derived.by(() => {
 
 ## 3. Side Effects: `$effect()`
 
-`$effect()` runs after the DOM updates whenever one or more tracked state dependencies change.
+`$effect()` runs **only in the browser** (never during SSR) after DOM updates whenever synchronously tracked reactive dependencies change. Always cancel timers and in-flight requests in the returned teardown function:
 
 ```svelte
 <script lang="ts">
 let searchInput = $state('');
 
 $effect(() => {
-  const current = searchInput;
+  const current = searchInput.trim();
+  if (!current) return;
+
+  const controller = new AbortController();
   const timer = setTimeout(() => {
-    fetch(`/api/search?q=${encodeURIComponent(current)}`);
+    fetch(`/api/search?q=${encodeURIComponent(current)}`, {
+      signal: controller.signal
+    }).catch(() => {});
   }, 300);
 
   return () => {
     clearTimeout(timer);
+    controller.abort();
   };
 });
 </script>
 ```
 
 ### Specialized Effect Variants
-- `$effect.pre()`: Runs before the DOM is updated. Use for synchronizing scroll positions before layout paint.
-- `$effect.root()`: Creates an isolated, non-tracked effect root for manual lifecycle tearing.
+- `$effect.pre()`: Runs before DOM updates; use for measuring layout or preserving scroll offset prior to paint.
+- `$effect.root()`: Creates an untied, manual effect scope with an explicit cleanup function (useful outside components or in tests).
+- `$effect.tracking()`: Returns `true` when executing inside a reactive tracking context.
 
 ---
 
 ## 4. Component Input Properties: `$props()` and `$bindable()`
 
-`$props()` replaces legacy `export let`:
+Annotate props on the destructured variable pattern (`let { ... }: Props = $props()`). Use `$bindable()` only for props that explicitly support two-way `bind:prop` synchronization; without `$bindable()`, mutating a prop triggers `ownership_invalid_mutation`:
 
 ```svelte
 <script lang="ts">
@@ -122,8 +128,6 @@ function toggle(): void {
 <div class="card">
   <h3>{title}</h3>
   <p>{subtitle}</p>
-  <button onclick={toggle}>{isOpen ? 'Collapse' : 'Expand'}</button>
+  <button type="button" onclick={toggle}>{isOpen ? 'Collapse' : 'Expand'}</button>
 </div>
 ```
-
-`$bindable()` explicitly grants parent components permission to establish two-way `bind:isOpen` synchronization.

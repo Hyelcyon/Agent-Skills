@@ -54,16 +54,18 @@ React Bits utilizes custom keyframe animations and utility classes.
 @import "tailwindcss";
 
 @theme {
-  --keyframes-shine: {
-    0%: { background-position: 100% };
-    100%: { background-position: -100% };
-  };
-  --animation-shine: shine 5s linear infinite;
+  --animate-shine: shine 5s linear infinite;
+  --animate-star-movement: star-movement 6s linear infinite;
 
-  --keyframes-star-movement: {
-    0%: { transform: translate(0, 0) };
-    100%: { transform: translate(100%, 100%) };
-  };
+  @keyframes shine {
+    0% { background-position: 100%; }
+    100% { background-position: -100%; }
+  }
+
+  @keyframes star-movement {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(100%, 100%); }
+  }
 }
 ```
 

@@ -1,0 +1,16 @@
+interface:
+  display_name: "API Schema Auditor"
+  short_description: "Cross-check OpenAPI contracts against backend handlers"
+  brand_color: "#2563EB"
+  default_prompt: "Run $api-schema-auditor on the current branch diff."
+
+policy:
+  allow_implicit_invocation: true
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "openapi-registry"
+      description: "Internal OpenAPI schema registry lookup"
+      transport: "streamable_http"
+      url: "https://registry.example.internal/mcp"

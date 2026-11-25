@@ -34,15 +34,17 @@ Phase 5: Automated Verification & Type-Checking (ruff, mypy, pytest)
 Verify Python runtime targets 3.12 or 3.13. Validate that `pyproject.toml` configures Ruff for formatting and strict type-checking (`mypy --strict`).
 
 ### Phase 2: Data Model Design & Boundary Validation
-Define domain models using Pydantic v2 with `strict=True`, `frozen=True`, and `extra="forbid"`:
+Define strict domain contracts using Pydantic v2 (`strict=True`, `frozen=True`, `extra="forbid"`). Never represent monetary values with binary `float`—use `Decimal` or integer minor units (`amount_cents: int`):
 ```python
+from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
 
 class OrderPayload(BaseModel):
     model_config = ConfigDict(strict=True, frozen=True, extra="forbid")
     order_id: str = Field(min_length=1)
-    amount: float = Field(gt=0)
+    amount: Decimal = Field(gt=0, max_digits=12, decimal_places=2)
 ```
+Use `strict=True` for internal trusted boundaries; validate and coerce untrusted JSON strings safely at API ingress before instantiating strict models.
 
 ### Phase 3: Deterministic Logic Execution
 Use structural pattern matching (`match` / `case`) and native type syntax (`X | Y`). Use `pathlib.Path` instead of `os.path`. Eliminate mutable default arguments.

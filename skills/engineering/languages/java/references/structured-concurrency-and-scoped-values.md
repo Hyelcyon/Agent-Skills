@@ -12,20 +12,25 @@ Traditional asynchronous code using `CompletableFuture` executes subtasks in an 
 package com.enterprise.concurrency;
 
 import java.util.concurrent.StructuredTaskScope;
+import java.util.concurrent.StructuredTaskScope.Joiner;
 
 public class OrderAggregationService {
     public record OrderSnapshot(String userDetails, String paymentStatus) {}
 
-    // Note: StructuredTaskScope is a preview API in Java 21-25; requires --enable-preview
+    // Requires --enable-preview on Java 25 (JEP 505 replaces ShutdownOnFailure from JDK 21-24)
     public OrderSnapshot fetchOrderSummary(String orderId) throws Exception {
-        try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+        try (var scope = StructuredTaskScope.open(Joiner.awaitAllSuccessfulOrThrow())) {
             StructuredTaskScope.Subtask<String> userTask = scope.fork(() -> fetchUser(orderId));
             StructuredTaskScope.Subtask<String> paymentTask = scope.fork(() -> fetchPayment(orderId));
 
             scope.join();
-            scope.throwIfFailed();
 
             return new OrderSnapshot(userTask.get(), paymentTask.get());
+        } catch (StructuredTaskScope.FailedException e) {
+            if (e.getCause() instanceof Exception cause) {
+                throw cause;
+            }
+            throw e;
         }
     }
 
@@ -39,7 +44,7 @@ public class OrderAggregationService {
 }
 ```
 
-If `fetchUser` throws an exception, `ShutdownOnFailure` sends cancellation interrupts to `fetchPayment` immediately and rethrows the failure upon calling `throwIfFailed()`.
+If `fetchUser` throws an exception, `Joiner.awaitAllSuccessfulOrThrow()` cancels sibling subtasks immediately and `scope.join()` throws `StructuredTaskScope.FailedException` wrapping the root cause.
 
 ---
 

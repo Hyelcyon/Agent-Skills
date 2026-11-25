@@ -13,13 +13,20 @@ Legacy properties (`"main"`, `"module"`, `"browser"`) suffer from inconsistent m
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./testing": {
-      "types": "./dist/testing.d.ts",
-      "import": "./dist/testing.js"
+      "import": {
+        "types": "./dist/testing.d.ts",
+        "default": "./dist/testing.js"
+      }
     },
     "./package.json": "./package.json"
   }
@@ -34,12 +41,9 @@ Any attempt by a consumer to import internal files (for example, `@enterprise/da
 
 Node.js and TypeScript inspect conditional export keys sequentially from top to bottom. Incorrect key ordering breaks type resolution or causes dual-package hazard bugs.
 
-### Mandatory Key Order Rule
+### Mandatory Condition Structure
 
-1. `"types"`: Must always be the first key. If placed after `"import"`, TypeScript may fail to locate declaration files in certain module resolution modes.
-2. `"import"`: The ESM target file.
-3. `"require"`: The CommonJS target file (if backwards compatibility is maintained).
-4. `"default"`: Generic fallback entry point.
+Nest `"types"` **first inside each runtime condition** (`.d.ts` under `"import"`, `.d.cts` under `"require"`) rather than sharing a single top-level `"types"` key before `"import"`/`"require"`, then place `"default"` as the fallback entry point:
 
 ---
 

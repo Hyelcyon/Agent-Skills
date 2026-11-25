@@ -34,19 +34,19 @@ Instead of stashing or cloning separate repositories for urgent hotfixes:
 ```bash
 git worktree add ../project-hotfix main
 cd ../project-hotfix
-
+# Apply fix and run verification suite before returning
 cd ../main-repo
 git worktree remove ../project-hotfix
 ```
 
 ---
 
-## 4. Safe Force-Pushing: `--force-with-lease`
+## 4. Safe Force-Pushing: `--force-with-lease --force-if-includes`
 
-Never use bare `git push -f` or `--force`. Bare force-pushes overwrite remote commits even if a teammate pushed work while you were rebasing:
+Never use bare `git push -f` or `--force`. Bare force-pushes overwrite remote commits even if a teammate pushed work while you were rebasing. Always pair `--force-with-lease` with `--force-if-includes` so Git also verifies that the remote-tracking tip was actually integrated into your local branch history (blocking silent overwrites after background `git fetch` or IDE auto-fetch):
 
 ```bash
-git push --force-with-lease origin <branch-name>
+git push --force-with-lease --force-if-includes origin <branch-name>
 ```
 
 ---
@@ -62,12 +62,15 @@ Git resolves ignore rules in the following order of precedence (highest to lowes
 5. Global excludes file configured in `core.excludesFile` (e.g. `~/.gitignore_global` for OS `.DS_Store` or personal editor preferences).
 
 ### Untracking Already Committed Files
-Adding a rule to `.gitignore` does not untrack files that were already committed to the index. To purge tracked files that match new ignore rules without deleting them from the filesystem:
+Adding a rule to `.gitignore` does not untrack files that were already committed to the index. Remove only the newly ignored paths from the index without deleting local files or blindly running `git add .`:
 
 ```bash
-git rm -r --cached .
-git add .
-git commit -m "chore(git): re-apply .gitignore to index"
+# Untrack a specific path surgically
+git rm --cached path/to/ignored-file
+
+# Or untrack all tracked files that now match .gitignore rules
+git ls-files -ci --exclude-standard -z | xargs -0 git rm --cached
+git status -s
 ```
 
 ### Negative Patterns & Directory Exceptions

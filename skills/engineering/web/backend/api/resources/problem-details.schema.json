@@ -2,10 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "RFC9457ProblemDetails",
   "type": "object",
+  "additionalProperties": true,
   "properties": {
     "type": {
       "type": "string",
-      "format": "uri"
+      "format": "uri-reference"
     },
     "title": {
       "type": "string"

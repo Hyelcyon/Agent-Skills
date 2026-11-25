@@ -1,22 +1,14 @@
 import {
   Component,
   ChangeDetectionStrategy,
-  signal,
   computed,
   input,
-  output,
-  inject
+  linkedSignal,
+  output
 } from '@angular/core';
-
-interface NotificationService {
-  notify(message: string): void;
-}
-
-const NOTIFICATION_TOKEN = 'NOTIFICATION_SERVICE_TOKEN';
 
 @Component({
   selector: 'app-signal-counter',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="counter-card">
@@ -25,9 +17,9 @@ const NOTIFICATION_TOKEN = 'NOTIFICATION_SERVICE_TOKEN';
       <p class="doubled-value">Doubled: {{ doubledCount() }}</p>
 
       <div class="actions">
-        <button (click)="decrement()" [disabled]="count() <= minLimit()">-</button>
-        <button (click)="increment()" [disabled]="count() >= maxLimit()">+</button>
-        <button (click)="reset()">Reset</button>
+        <button type="button" (click)="decrement()" [disabled]="count() <= minLimit()">-</button>
+        <button type="button" (click)="increment()" [disabled]="count() >= maxLimit()">+</button>
+        <button type="button" (click)="reset()">Reset</button>
       </div>
     </div>
   `
@@ -39,7 +31,8 @@ export class SignalCounterComponent {
 
   readonly thresholdReached = output<number>();
 
-  readonly count = signal<number>(0);
+  // linkedSignal resets count whenever minLimit input changes while remaining locally writable
+  readonly count = linkedSignal(() => this.minLimit());
   readonly doubledCount = computed(() => this.count() * 2);
 
   increment(): void {

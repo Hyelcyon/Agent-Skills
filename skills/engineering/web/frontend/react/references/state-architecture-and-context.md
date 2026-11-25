@@ -40,11 +40,11 @@ interface EditorState {
   toggleSidebar: () => void;
 }
 
-export const useEditorStore = create<EditorState>((set) => ({
+export const useEditorStore = create<EditorState>()((set) => ({
   activeTab: 'code',
   isSidebarExpanded: true,
   setActiveTab: (tab) => set({ activeTab: tab }),
-  toggleSidebar: () => set((state) => ({ isSidebarExpanded: !state.isSidebarExpanded }))
+  toggleSidebar: () => set((state) => ({ isSidebarExpanded: !state.isSidebarExpanded })),
 }));
 ```
 
@@ -53,3 +53,12 @@ Components subscribe only to the specific slice of state they consume:
 const isSidebarExpanded = useEditorStore((state) => state.isSidebarExpanded);
 ```
 When `activeTab` changes, this component does NOT re-render, eliminating wasted render cycles.
+
+---
+
+## 4. Compound Components Over Boolean-Prop Explosion
+
+Avoid scaling reusable widgets via dozens of boolean flags (`isCompact`, `withBorder`, `hideHeader`). Expose explicit semantic subcomponents sharing React Context:
+- **Anti-Pattern**: `<DataCard title="Usage" compact showFooter noPadding={false} />`
+- **Composition Pattern**: `<DataCard><DataCard.Header>Usage</DataCard.Header><DataCard.Body>...</DataCard.Body></DataCard>`
+Callers rearrange, omit, or customize slots without modifying core component internals.
